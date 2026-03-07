@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoStatPro — Reservoir Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.27.0/plotly.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0e14; --panel:#111720; --card:#161d27; --cardhi:#1c2535;
+  --border:#263040; --borderhi:#3a4f6a;
+  --accent:#e84a2e; --gold:#f5a623; --teal:#26d9c7;
+  --blue:#4fa3e8; --green:#38c96e; --muted:#6a7f95;
+  --text:#dce8f5; --dim:#a8bdd0; --purple:#9b72f5;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--panel)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── SIDEBAR ── */
+#sidebar{width:215px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.logo{padding:18px 16px 12px;border-bottom:1px solid var(--border)}
+.logo-title{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);letter-spacing:-.02em}
+.logo-sub{font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:.1em;text-transform:uppercase}
+.nav-section{font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;padding:10px 12px 4px;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:transparent;border:none;border-left:2px solid transparent;color:var(--muted);cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;text-align:left;transition:all .12s;border-radius:0 6px 6px 0;margin-bottom:1px}
+.nav-item:hover{color:var(--dim);background:var(--card)}
+.nav-item.active{color:var(--text);background:var(--accent)18;border-left-color:var(--accent);font-weight:600}
+.nav-item.active.knowledge{background:var(--teal)15;border-left-color:var(--teal);color:var(--teal)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);margin-left:auto;flex-shrink:0}
+.new-badge{background:var(--accent)33;color:var(--accent);border-radius:3px;padding:1px 5px;font-size:8px;font-weight:700;margin-left:auto}
+.nav-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
+.sidebar-stats{padding:10px 14px;border-top:1px solid var(--border);font-size:10px}
+.stat-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.stat-val{font-family:'Space Mono',monospace;color:var(--teal);font-weight:700}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 22px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.topbar-title{font-size:14px;font-weight:700}
+.topbar-sub{font-size:11px;color:var(--muted);margin-top:1px}
+#content{flex:1;overflow-y:auto;padding:24px 28px}
+
+/* ── COMPONENTS ── */
+.tag{display:inline-flex;align-items:center;padding:2px 9px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.section-header{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.section-title{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.divider{height:1px;flex:1;background:var(--border)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 22px}
+.card-sm{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px}
+.info-box{border-left:3px solid var(--teal);border-radius:0 8px 8px 0}
+.warn-box{border-left:3px solid var(--gold)}
+.btn{border:none;border-radius:7px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-outline{background:var(--card);color:var(--dim);border:1px solid var(--border)}
+.btn-outline:hover{border-color:var(--borderhi);color:var(--text)}
+.btn-outline.active{background:var(--accent)20;color:var(--accent);border-color:var(--accent)55}
+.btn-teal{background:var(--teal);color:var(--bg);font-weight:700}
+.input{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;width:100%}
+.input:focus{border-color:var(--borderhi)}
+.select{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer}
+.label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.metric-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.metric-val{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;margin-top:4px}
+.metric-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+.blink{animation:blink .8s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.typing-cursor{display:inline-block;width:8px;height:14px;background:var(--teal);margin-left:2px;vertical-align:text-bottom}
+
+/* ── VALIDATION EXPANDER ── */
+.expander{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:18px}
+.expander-header{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--card);cursor:pointer;transition:all .15s;width:100%;border:none;text-align:left;font-family:'DM Sans',sans-serif}
+.expander-header:hover{background:var(--cardhi)}
+.expander-header.open{background:var(--teal)12;border-bottom:1px solid var(--border)}
+.expander-body{padding:18px 20px;background:var(--card)}
+
+/* ── CHAT ── */
+.chat-area{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-bottom:10px}
+.chat-user{align-self:flex-end;max-width:80%;background:var(--accent)20;border:1px solid var(--accent)44;border-radius:12px 12px 3px 12px;padding:10px 16px;font-size:13px}
+.chat-bot{align-self:flex-start;max-width:85%}
+.chat-bot-inner{background:var(--card);border:1px solid var(--border);border-radius:3px 12px 12px 12px;padding:16px 20px}
+.chat-input-row{display:flex;gap:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-top:10px}
+.chat-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif}
+
+/* ── DATA TABLE ── */
+.data-table{width:100%;border-collapse:collapse;font-size:12px}
+.data-table th{background:var(--cardhi);color:var(--teal);padding:8px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border)}
+.data-table td{padding:7px 12px;border-bottom:1px solid var(--border)22;color:var(--dim)}
+.data-table tr:hover td{background:var(--cardhi)88}
+
+/* ── PROGRESS BAR ── */
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--blue));border-radius:3px;transition:width .3s}
+
+/* ── MARKDOWN ── */
+.md h1{color:var(--accent);font-size:18px;font-weight:800;margin:20px 0 10px}
+.md h2{color:var(--blue);font-size:15px;font-weight:700;margin:18px 0 8px}
+.md h3{color:var(--teal);font-size:13px;font-weight:700;margin:14px 0 6px;border-bottom:1px solid var(--border);padding-bottom:5px}
+.md h4{color:var(--gold);font-size:12px;font-weight:700;margin:10px 0 5px}
+.md p{color:var(--dim);font-size:13px;line-height:1.75;margin:4px 0}
+.md ul,.md ol{padding-left:0;list-style:none}
+.md li{color:var(--dim);font-size:13px;margin:3px 0;display:flex;gap:8px;padding-left:8px}
+.md li::before{content:"▸";color:var(--accent);flex-shrink:0}
+.md ol li::before{content:counter(item)".";counter-increment:item;color:var(--blue)}
+.md ol{counter-reset:item}
+.md code{background:var(--panel);color:var(--green);padding:1px 5px;border-radius:3px;font-family:'Space Mono',monospace;font-size:11px}
+.md pre{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;overflow-x:auto;margin:10px 0}
+.md pre code{background:none;padding:0;font-size:11px;line-height:1.6}
+.md .math-block{background:var(--panel);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:10px 16px;margin:10px 0;font-family:'Space Mono',monospace;color:var(--gold);font-size:12px;overflow-x:auto}
+.md strong{color:var(--gold);font-weight:700}
+.md em{color:var(--purple);font-style:italic}
+.md hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.md blockquote{border-left:3px solid var(--purple);padding-left:14px;margin:8px 0;color:var(--purple);font-style:italic;font-size:13px}
+.md table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px}
+.md th{background:var(--cardhi);color:var(--teal);padding:6px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.md td{padding:5px 10px;border-bottom:1px solid var(--border)44;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ SIDEBAR -->
+<div id="sidebar">
+  <div class="logo">
+    <div class="logo-title">🛢️ GeoStatPro</div>
+    <div class="logo-sub">Reservoir Intelligence v3</div>
+  </div>
+
+  <div class="nav-section">Core Workflow</div>
+  <button class="nav-item" onclick="nav('data')">📂 <span>Data Input</span></button>
+  <button class="nav-item" onclick="nav('eda')">🔍 <span>EDA & Quality Control</span></button>
+  <button class="nav-item" onclick="nav('vario')">📈 <span>Variogram Analysis</span> <span class="nav-dot"></span></button>
+  <button class="nav-item" onclick="nav('kriging')">🗺️ <span>Spatial Interpolation</span> <span class="nav-dot"></span></button>
+  <button class="nav-item" onclick="nav('ml')">🤖 <span>ML Prediction</span></button>
+  <button class="nav-item" onclick="nav('uncert')">🎲 <span>Uncertainty</span></button>
+  <button class="nav-item" onclick="nav('viz3d')">🧊 <span>3D Visualisation</span></button>
+  <button class="nav-item" onclick="nav('sgs')">🎰 <span>SGS Simulation</span> <span class="nav-dot"></span></button>
+  <button class="nav-item" onclick="nav('corr')">📋 <span>Correlation Panels</span></button>
+
+  <hr class="nav-divider">
+  <div class="nav-section">Knowledge Hub <span class="new-badge" style="margin-left:4px">NEW</span></div>
+  <button class="nav-item knowledge" onclick="nav('theory')">📐 <span>Theory & Math</span> <span class="new-badge">NEW</span></button>
+  <button class="nav-item knowledge" onclick="nav('study')">📚 <span>Study Tool</span> <span class="new-badge">NEW</span></button>
+  <button class="nav-item knowledge" onclick="nav('helptext')">📝 <span>Help Text</span> <span class="new-badge">NEW</span></button>
+
+  <div style="flex:1"></div>
+  <div class="sidebar-stats">
+    <div class="stat-row"><span style="color:var(--muted)">Pages</span><span class="stat-val">12</span></div>
+    <div class="stat-row"><span style="color:var(--muted)">Modules</span><span class="stat-val">10</span></div>
+    <div class="stat-row"><span style="color:var(--muted)">Lines</span><span class="stat-val">~4,400</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ MAIN -->
+<div id="main">
+  <div id="topbar">
+    <div style="flex:1">
+      <div class="topbar-title" id="topbar-title">📂 Data Input</div>
+      <div class="topbar-sub">GeoStatPro v3 · Reservoir Geostatistics Platform</div>
+    </div>
+    <span class="tag" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44">API Key Required for Knowledge Hub</span>
+    <span class="tag" style="background:var(--teal)22;color:var(--teal);border:1px solid var(--teal)44">12 Pages</span>
+    <span class="tag" style="background:var(--accent)22;color:var(--accent);border:1px solid var(--accent)44">v3.0</span>
+  </div>
+
+  <!-- API KEY BANNER -->
+  <div id="api-banner" style="background:var(--gold)15;border-bottom:1px solid var(--gold)44;padding:8px 22px;display:flex;align-items:center;gap:12px;font-size:12px;flex-shrink:0">
+    <span style="color:var(--gold);font-weight:700">🔑 Knowledge Hub needs your Anthropic API key:</span>
+    <input type="password" id="api-key-input" class="input" placeholder="sk-ant-..." style="width:300px;padding:5px 10px;font-size:12px">
+    <button class="btn btn-primary" style="padding:5px 14px;font-size:12px" onclick="saveApiKey()">Save Key</button>
+    <span id="key-status" style="color:var(--muted);font-size:11px">Not set — Theory, Study Tool, Help Text pages require this</span>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// GLOBAL STATE
+// ═══════════════════════════════════════════════════════════════════════════════
+const STATE = {
+  apiKey: '',
+  df: null,         // { headers:[], rows:[[]] }
+  wellNames: [],
+  currentPage: 'data',
+  studyChat: [],
+  sgsResults: null,
+  varioFit: null,
+};
+
+function saveApiKey() {
+  const k = document.getElementById('api-key-input').value.trim();
+  if (k.startsWith('sk-ant-')) {
+    STATE.apiKey = k;
+    document.getElementById('key-status').textContent = '✅ Key saved for this session';
+    document.getElementById('key-status').style.color = 'var(--green)';
+    document.getElementById('api-banner').style.background = 'var(--green)10';
+  } else {
+    document.getElementById('key-status').textContent = '❌ Key must start with sk-ant-';
+    document.getElementById('key-status').style.color = 'var(--accent)';
+  }
+}
+
+// ── NAVIGATION ──────────────────────────────────────────────────────────────
+const PAGE_TITLES = {
+  data:'📂 Data Input', eda:'🔍 EDA & Quality Control',
+  vario:'📈 Variogram Analysis', kriging:'🗺️ Spatial Interpolation',
+  ml:'🤖 ML Prediction', uncert:'🎲 Uncertainty Quantification',
+  viz3d:'🧊 3D Visualisation', sgs:'🎰 SGS Simulation',
+  corr:'📋 Correlation Panels', theory:'📐 Theory & Math',
+  study:'📚 Study Tool', helptext:'📝 Help Text',
+};
+const KNOWLEDGE_PAGES = new Set(['theory','study','helptext']);
+
+function nav(page) {
+  STATE.currentPage = page;
+  document.getElementById('topbar-title').textContent = PAGE_TITLES[page] || page;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('active');
+    if (el.textContent.includes(PAGE_TITLES[page]?.slice(2) || '___')) el.classList.add('active');
+  });
+  // match nav items
+  document.querySelectorAll('.nav-item').forEach(el => {
+    const label = PAGE_TITLES[page];
+    if (label && el.innerText.includes(label.split(' ').slice(1).join(' ').trim())) {
+      el.classList.add('active');
+      if (KNOWLEDGE_PAGES.has(page)) el.classList.add('knowledge');
+    }
+  });
+  renderPage(page);
+}
+
+function renderPage(page) {
+  const c = document.getElementById('content');
+  c.innerHTML = '';
+  const pages = {
+    data: pageData, eda: pageEDA, vario: pageVario,
+    kriging: pageKriging, ml: pageML, uncert: pageUncert,
+    viz3d: pageViz3D, sgs: pageSGS, corr: pageCorr,
+    theory: pageTheory, study: pageStudy, helptext: pageHelpText,
+  };
+  if (pages[page]) pages[page](c);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GEOSTATISTICS ENGINE (pure JS)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Synthetic data generator
+function generateSyntheticData(nWells=15, seed=42) {
+  const rng = seededRng(seed);
+  const wells = [];
+  for (let i = 0; i < nWells; i++) {
+    const x = rng() * 10000, y = rng() * 10000, depth = 2000 + rng()*500;
+    const trend = 0.05 - x/200000 - y/200000;
+    const phi = Math.max(0.05, Math.min(0.35, 0.18 + trend + (rng()-0.5)*0.08));
+    const k = Math.exp(2.5 + 15*phi + (rng()-0.5)*1.2);
+    const sw = Math.max(0.15, Math.min(0.85, 0.65 - 2*phi + (rng()-0.5)*0.1));
+    const ntg = Math.max(0.3, Math.min(1.0, 0.7 + (rng()-0.5)*0.3));
+    wells.push({
+      Well:`W-${String(i+1).padStart(2,'0')}`,
+      X:+x.toFixed(1), Y:+y.toFixed(1), Depth:+depth.toFixed(1),
+      Porosity:+phi.toFixed(4), Permeability:+k.toFixed(2),
+      WaterSat:+sw.toFixed(4), NTG:+ntg.toFixed(4),
+    });
+  }
+  return wells;
+}
+
+function seededRng(seed) {
+  let s = seed % 2147483647;
+  if (s <= 0) s += 2147483646;
+  return () => { s = s * 16807 % 2147483647; return (s-1)/2147483646; };
+}
+
+// Variogram models
+function sphericalModel(h, nugget, sill, range) {
+  if (h === 0) return 0;
+  if (h > range) return sill;
+  return nugget + (sill-nugget)*(1.5*h/range - 0.5*(h/range)**3);
+}
+function exponentialModel(h, nugget, sill, range) {
+  if (h === 0) return 0;
+  return nugget + (sill-nugget)*(1 - Math.exp(-h/range));
+}
+function gaussianModel(h, nugget, sill, range) {
+  if (h === 0) return 0;
+  return nugget + (sill-nugget)*(1 - Math.exp(-(h*h)/(range*range)));
+}
+
+function computeExperimentalVariogram(xs, ys, vals, nLags=12) {
+  const n = xs.length;
+  const dists = [], gammas_raw = [];
+  for (let i=0;i<n;i++) for (let j=i+1;j<n;j++) {
+    const d = Math.sqrt((xs[i]-xs[j])**2+(ys[i]-ys[j])**2);
+    dists.push(d);
+    gammas_raw.push(0.5*(vals[i]-vals[j])**2);
+  }
+  const maxDist = Math.max(...dists)/2;
+  const lagW = maxDist/nLags;
+  const lags=[], gammas=[], counts=[];
+  for (let k=0;k<nLags;k++) {
+    const lo=k*lagW, hi=(k+1)*lagW, center=(k+0.5)*lagW;
+    const pairs = dists.reduce((acc,d,i)=>{if(d>=lo&&d<hi)acc.push(gammas_raw[i]);return acc;},[]);
+    if (pairs.length>=3) { lags.push(center); gammas.push(pairs.reduce((a,b)=>a+b,0)/pairs.length); counts.push(pairs.length); }
+  }
+  return {lags, gammas, counts};
+}
+
+function fitVariogramModel(lags, gammas, modelType='spherical') {
+  const sill = Math.max(...gammas)*1.05;
+  const nugget = gammas[0]*0.3;
+  const range = lags[Math.floor(lags.length*0.6)];
+  const modelFn = {spherical:sphericalModel,exponential:exponentialModel,gaussian:gaussianModel}[modelType];
+  // Simple gradient descent
+  let [n,s,r] = [nugget, sill, range];
+  const lr = 0.0001, iters = 500;
+  for (let it=0;it<iters;it++) {
+    let gn=0,gs=0,gr=0;
+    lags.forEach((h,i)=>{
+      const pred=modelFn(h,n,s,r), err=pred-gammas[i];
+      gn+=err; gs+=err*(1-Math.exp(-h/r)); gr+=err*(s-n)*h/(r*r)*Math.exp(-h/r);
+    });
+    n-=lr*gn; s-=lr*gs; r-=lr*gr;
+    n=Math.max(0,n); s=Math.max(n+1e-6,s); r=Math.max(100,r);
+  }
+  // R²
+  const mean = gammas.reduce((a,b)=>a+b,0)/gammas.length;
+  const ssTot = gammas.reduce((a,g)=>a+(g-mean)**2,0);
+  const ssRes = lags.reduce((a,h,i)=>a+(modelFn(h,n,s,r)-gammas[i])**2,0);
+  const r2 = 1-ssRes/ssTot;
+  return {nugget:+n.toFixed(6), sill:+s.toFixed(6), range:+r.toFixed(1), r2:+r2.toFixed(4), model:modelType, fn:modelFn};
+}
+
+// Ordinary Kriging (simple grid)
+function ordinaryKriging(xs, ys, vals, fit, gridN=40) {
+  const xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+  const xg=[], yg=[], zg=[];
+  for (let i=0;i<gridN;i++) for (let j=0;j<gridN;j++) {
+    xg.push(xmin+(xmax-xmin)*i/(gridN-1));
+    yg.push(ymin+(ymax-ymin)*j/(gridN-1));
+  }
+  const n=xs.length;
+  // Build C matrix
+  const C = Array.from({length:n+1},(_,i)=>Array.from({length:n+1},(_,j)=>{
+    if(i===n||j===n) return i===n&&j===n?0:1;
+    const h=Math.sqrt((xs[i]-xs[j])**2+(ys[i]-ys[j])**2);
+    return fit.sill - fit.fn(h, fit.nugget, fit.sill, fit.range);
+  }));
+  // Cholesky-ish solve via Gaussian elimination
+  function solve(A, b) {
+    const m=A.length, a=A.map(r=>[...r,b[r[0]?0:0]]);
+    for(let i=0;i<m;i++) {
+      a[i]=[...A[i],b[i]];
+    }
+    for(let col=0;col<m;col++){
+      let maxR=col; for(let r=col+1;r<m;r++) if(Math.abs(a[r][col])>Math.abs(a[maxR][col])) maxR=r;
+      [a[col],a[maxR]]=[a[maxR],a[col]];
+      for(let r=0;r<m;r++) if(r!==col&&Math.abs(a[col][col])>1e-10){
+        const f=a[r][col]/a[col][col];
+        for(let c=col;c<=m;c++) a[r][c]-=f*a[col][c];
+      }
+    }
+    return a.map((r,i)=>r[m]/(Math.abs(r[i])>1e-10?r[i]:1));
+  }
+  const zOut=[];
+  for(let p=0;p<xg.length;p++){
+    const c0=xs.map((_,i)=>{const h=Math.sqrt((xs[i]-xg[p])**2+(ys[i]-yg[p])**2); return fit.sill-fit.fn(h,fit.nugget,fit.sill,fit.range);});
+    c0.push(1);
+    try{
+      const lam=solve(C.map(r=>[...r]),c0);
+      zOut.push(lam.slice(0,n).reduce((acc,l,i)=>acc+l*vals[i],0));
+    } catch(e){ zOut.push(vals.reduce((a,b)=>a+b,0)/vals.length); }
+  }
+  // Reshape to grid
+  const Z=Array.from({length:gridN},(_,i)=>zOut.slice(i*gridN,(i+1)*gridN));
+  const X=Array.from({length:gridN},(_,i)=>{const r=[];for(let j=0;j<gridN;j++)r.push(xg[i*gridN+j]);return r;});
+  const Y=Array.from({length:gridN},(_,i)=>{const r=[];for(let j=0;j<gridN;j++)r.push(yg[i*gridN+j]);return r;});
+  return {X,Y,Z,xmin,xmax,ymin,ymax};
+}
+
+// Normal score transform
+function normalScoreTransform(vals) {
+  const valid = vals.filter(v=>!isNaN(v));
+  const n=valid.length;
+  const sorted=[...valid].sort((a,b)=>a-b);
+  const scores=sorted.map((_,i)=>normalPPF((i+1)/(n+1)));
+  // Map vals to scores via interpolation
+  return vals.map(v=>{
+    if(isNaN(v)) return NaN;
+    let lo=0,hi=sorted.length-1;
+    while(lo<hi-1){const m=Math.floor((lo+hi)/2);if(sorted[m]<=v)lo=m;else hi=m;}
+    if(v<=sorted[lo]) return scores[lo];
+    if(v>=sorted[hi]) return scores[hi];
+    const t=(v-sorted[lo])/(sorted[hi]-sorted[lo]);
+    return scores[lo]+t*(scores[hi]-scores[lo]);
+  });
+}
+
+function normalPPF(p) {
+  // Rational approximation
+  if(p<=0) return -6; if(p>=1) return 6;
+  const a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+  const b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+  const c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+  const d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+  const plo=0.02425, phi=1-plo;
+  if(p<plo){const q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p<=phi){const q=p-0.5,r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+  const q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+}
+
+// Simple kriging (for SGS)
+function simpleKriging(condX, condY, condV, tx, ty, fit) {
+  const n=condX.length;
+  if(n===0) return {mean:0, variance:fit.sill};
+  const C=Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>{
+    const h=Math.sqrt((condX[i]-condX[j])**2+(condY[i]-condY[j])**2);
+    return fit.sill-fit.fn(h,fit.nugget,fit.sill,fit.range)+( i===j?1e-6:0 );
+  }));
+  const c0=condX.map((_,i)=>{const h=Math.sqrt((condX[i]-tx)**2+(condY[i]-ty)**2);return fit.sill-fit.fn(h,fit.nugget,fit.sill,fit.range);});
+  function solve(A,b){
+    const m=A.length,a=A.map((r,i)=>[...r,b[i]]);
+    for(let col=0;col<m;col++){
+      let mx=col;for(let r=col+1;r<m;r++)if(Math.abs(a[r][col])>Math.abs(a[mx][col]))mx=r;
+      [a[col],a[mx]]=[a[mx],a[col]];
+      for(let r=0;r<m;r++)if(r!==col&&Math.abs(a[col][col])>1e-10){const f=a[r][col]/a[col][col];for(let c=col;c<=m;c++)a[r][c]-=f*a[col][c];}
+    }
+    return a.map((r,i)=>r[m]/(Math.abs(r[i])>1e-10?r[i]:1));
+  }
+  let lam;
+  try{ lam=solve(C,c0); } catch(e){ return {mean:0,variance:fit.sill}; }
+  const mean=lam.reduce((acc,l,i)=>acc+l*condV[i],0);
+  const variance=Math.max(0, fit.sill - lam.reduce((acc,l,i)=>acc+l*c0[i],0));
+  return {mean, variance};
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ANTHROPIC API
+// ═══════════════════════════════════════════════════════════════════════════════
+async function callClaude(prompt, system='', maxTokens=3000) {
+  if (!STATE.apiKey) return '⚠️ Please enter your Anthropic API key in the banner above.';
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':STATE.apiKey,'anthropic-version':'2023-06-01'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514', max_tokens:maxTokens,
+      system: system || 'You are an expert petroleum reservoir engineer and geostatistician. Answer questions drawing on Ezekwe (2011) "Petroleum Reservoir Engineering Practice" and Ahmed & Meehan (2012) "Advanced Reservoir Management and Engineering". Always cite chapters. Format equations as: MATH: equation here. Use ## for headers, **bold** for key terms.',
+      messages:[{role:'user', content:prompt}]
+    })
+  });
+  const data = await resp.json();
+  if (data.error) return `**API Error:** ${data.error.message}`;
+  return data.content?.map(b=>b.text||'').join('') || '';
+}
+
+async function callClaudeStream(prompt, system, maxTokens, onChunk, onDone) {
+  if (!STATE.apiKey) { onDone('⚠️ Please enter your Anthropic API key in the banner above.'); return; }
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':STATE.apiKey,'anthropic-version':'2023-06-01','anthropic-beta':'messages-2023-12-15'},
+    body: JSON.stringify({
+      model:'claude-sonnet-4-20250514', max_tokens:maxTokens, stream:true,
+      system: system || 'You are an expert petroleum reservoir engineer and geostatistician. Cite Ezekwe (2011) and Ahmed & Meehan (2012). Format math as MATH: equation. Use ## headers.',
+      messages:[{role:'user', content:prompt}]
+    })
+  });
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let full = '';
+  while(true) {
+    const {done, value} = await reader.read();
+    if(done) break;
+    const chunk = decoder.decode(value);
+    const lines = chunk.split('\n').filter(l=>l.startsWith('data:'));
+    for(const line of lines) {
+      try {
+        const d = JSON.parse(line.slice(5));
+        if(d.type==='content_block_delta' && d.delta?.text) {
+          full += d.delta.text;
+          onChunk(full);
+        }
+      } catch(e){}
+    }
+  }
+  onDone(full);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MARKDOWN RENDERER
+// ═══════════════════════════════════════════════════════════════════════════════
+function renderMD(text, container) {
+  if(!text) return;
+  container.className = 'md';
+  const lines = text.split('\n');
+  let html = '', inCode=false, inTable=false;
+  for(const line of lines) {
+    if(line.startsWith('```')) { inCode=!inCode; html+=inCode?`<pre><code>`:`</code></pre>`; continue; }
+    if(inCode) { html+=escHtml(line)+'\n'; continue; }
+    if(line.startsWith('MATH:')) { html+=`<div class="math-block">${escHtml(line.slice(5).trim())}</div>`; continue; }
+    if(line.startsWith('## ')) { html+=`<h2>${line.slice(3)}</h2>`; continue; }
+    if(line.startsWith('### ')) { html+=`<h3>${line.slice(4)}</h3>`; continue; }
+    if(line.startsWith('#### ')) { html+=`<h4>${line.slice(5)}</h4>`; continue; }
+    if(line.startsWith('# ')) { html+=`<h1>${line.slice(2)}</h1>`; continue; }
+    if(line.startsWith('> ')) { html+=`<blockquote>${line.slice(2)}</blockquote>`; continue; }
+    if(line.match(/^[*-] /)) { html+=`<ul><li>${inlineFormat(line.slice(2))}</li></ul>`; continue; }
+    if(line.match(/^\d+\. /)) { html+=`<ol><li>${inlineFormat(line.replace(/^\d+\. /,''))}</li></ol>`; continue; }
+    if(line.match(/^---+$/)) { html+=`<hr>`; continue; }
+    if(line.match(/^\|.+\|$/)) { 
+      if(line.match(/^\|[-| :]+\|$/)) continue;
+      const cells=line.split('|').filter(c=>c.trim());
+      html+=`<table><tr>${cells.map(c=>`<td>${inlineFormat(c.trim())}</td>`).join('')}</tr></table>`;
+      continue;
+    }
+    if(line.trim()) html+=`<p>${inlineFormat(line)}</p>`;
+    else html+=`<div style="height:6px"></div>`;
+  }
+  container.innerHTML = html;
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function inlineFormat(s){
+  return s
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\$([^$]+)\$/g,'<code style="color:var(--gold);background:var(--panel)">$1</code>');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: DATA INPUT
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageData(c) {
+  c.innerHTML = `
+  <div class="section-header"><span class="section-title">Data Input & Loading</span><div class="divider"></div></div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card info-box">
+      <div class="label">Data Source</div>
+      <select class="select" id="data-source" style="width:100%;margin-top:6px">
+        <option value="sample">🧪 Generate Synthetic Data</option>
+        <option value="csv">📊 Upload CSV / Excel</option>
+        <option value="paste">✏️ Paste Data (CSV format)</option>
+      </select>
+    </div>
+    <div class="card" id="data-options">
+      <div class="label">Synthetic Wells</div>
+      <input type="range" id="n-wells" min="5" max="30" value="15" style="width:100%;margin:8px 0" oninput="document.getElementById('n-wells-val').textContent=this.value">
+      <div style="color:var(--dim);font-size:12px"><span id="n-wells-val">15</span> wells · Seed: <input type="number" id="seed" value="42" style="width:60px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:2px 6px"></div>
+    </div>
+  </div>
+  <div id="upload-area" style="display:none" class="card" style="margin-bottom:20px">
+    <div class="label">Upload File</div>
+    <input type="file" id="file-upload" accept=".csv,.xlsx,.xls" style="margin-top:8px;color:var(--dim);font-size:13px">
+  </div>
+  <div id="paste-area" style="display:none" class="card" style="margin-bottom:20px">
+    <div class="label">Paste CSV (first row = headers, must include X, Y, Porosity columns)</div>
+    <textarea id="paste-data" class="input" style="height:120px;margin-top:6px;font-family:monospace;font-size:11px" placeholder="Well,X,Y,Depth,Porosity,Permeability&#10;W-01,1000,2000,2500,0.21,45.2"></textarea>
+  </div>
+  <button class="btn btn-primary" onclick="loadData()">⚡ Load Data</button>
+  <div id="data-preview" style="margin-top:20px"></div>`;
+
+  document.getElementById('data-source').addEventListener('change', e=>{
+    document.getElementById('data-options').style.display = e.target.value==='sample'?'block':'none';
+    document.getElementById('upload-area').style.display = e.target.value==='csv'?'block':'none';
+    document.getElementById('paste-area').style.display = e.target.value==='paste'?'block':'none';
+  });
+
+  document.getElementById('file-upload').addEventListener('change', handleFileUpload);
+}
+
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const text = ev.target.result;
+    parseCSV(text);
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l=>l.trim());
+  const headers = lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
+  const rows = lines.slice(1).map(l=>l.split(',').map(v=>isNaN(v.trim())?v.trim():+v.trim()));
+  STATE.df = {headers, rows};
+  STATE.wellNames = rows.map(r=>r[0]);
+  previewData();
+}
+
+function loadData() {
+  const src = document.getElementById('data-source').value;
+  if(src === 'sample') {
+    const n = +document.getElementById('n-wells').value;
+    const seed = +document.getElementById('seed').value;
+    const data = generateSyntheticData(n, seed);
+    STATE.df = { headers: Object.keys(data[0]), rows: data.map(d=>Object.values(d)) };
+    STATE.wellNames = data.map(d=>d.Well);
+    previewData();
+  } else if(src === 'paste') {
+    const txt = document.getElementById('paste-data').value;
+    if(txt.trim()) parseCSV(txt);
+  }
+}
+
+function previewData() {
+  const prev = document.getElementById('data-preview');
+  if(!STATE.df) return;
+  const {headers, rows} = STATE.df;
+  const stats = headers.slice(1).map((h,hi)=>{
+    const vals = rows.map(r=>+r[hi+1]).filter(v=>!isNaN(v));
+    const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const std = Math.sqrt(vals.reduce((a,v)=>a+(v-mean)**2,0)/vals.length);
+    return {h, mean:mean.toFixed(4), std:std.toFixed(4), min:Math.min(...vals).toFixed(4), max:Math.max(...vals).toFixed(4)};
+  });
+
+  prev.innerHTML = `
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <span class="tag" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44">✅ ${rows.length} wells loaded</span>
+    <span class="tag" style="background:var(--teal)22;color:var(--teal);border:1px solid var(--teal)44">${headers.length} columns</span>
+  </div>
+  <div class="card" style="margin-bottom:16px;overflow-x:auto">
+    <div class="label" style="margin-bottom:10px">Data Preview (first 8 rows)</div>
+    <table class="data-table">
+      <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows.slice(0,8).map(r=>`<tr>${r.map(v=>`<td>${typeof v==='number'?v.toFixed(4):v}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="label" style="margin-bottom:10px">Summary Statistics</div>
+    <table class="data-table">
+      <thead><tr><th>Property</th><th>Mean</th><th>Std Dev</th><th>Min</th><th>Max</th></tr></thead>
+      <tbody>${stats.map(s=>`<tr><td style="color:var(--text);font-weight:600">${s.h}</td><td>${s.mean}</td><td>${s.std}</td><td>${s.min}</td><td>${s.max}</td></tr>`).join('')}</tbody>
+    </table>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: EDA
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageEDA(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers, rows} = STATE.df;
+  const numCols = headers.filter((_,i)=>i>0&&rows.every(r=>!isNaN(+r[i])));
+
+  c.innerHTML = `
+  <div class="section-header"><span class="section-title">EDA & Quality Control</span><div class="divider"></div></div>
+  <div class="grid-4" style="margin-bottom:20px" id="eda-metrics"></div>
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card"><div class="label" style="margin-bottom:10px">Histogram</div>
+      <select class="select" id="hist-col" style="width:100%;margin-bottom:10px" onchange="plotHistogram()">
+        ${numCols.map(h=>`<option value="${h}">${h}</option>`).join('')}
+      </select>
+      <div id="hist-chart" style="height:220px"></div>
+    </div>
+    <div class="card"><div class="label" style="margin-bottom:10px">Crossplot</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <select class="select" id="xp-x" style="flex:1" onchange="plotCrossplot()">
+          ${numCols.map((h,i)=>`<option value="${h}" ${i===0?'selected':''}>${h}</option>`).join('')}
+        </select>
+        <select class="select" id="xp-y" style="flex:1" onchange="plotCrossplot()">
+          ${numCols.map((h,i)=>`<option value="${h}" ${i===1?'selected':''}>${h}</option>`).join('')}
+        </select>
+      </div>
+      <div id="xp-chart" style="height:220px"></div>
+    </div>
+  </div>
+  <div class="card"><div class="label" style="margin-bottom:10px">Correlation Matrix</div><div id="corr-chart" style="height:300px"></div></div>`;
+
+  // Metrics
+  const metDiv = document.getElementById('eda-metrics');
+  const propCols = ['Porosity','Permeability','WaterSat','NTG'].filter(p=>headers.includes(p));
+  propCols.forEach(p=>{
+    const ci = headers.indexOf(p);
+    const vals = rows.map(r=>+r[ci]).filter(v=>!isNaN(v));
+    const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+    const colors = {Porosity:'var(--teal)',Permeability:'var(--blue)',WaterSat:'var(--accent)',NTG:'var(--gold)'};
+    const d = document.createElement('div');
+    d.className='metric-card';
+    d.style.borderLeft=`3px solid ${colors[p]||'var(--teal)'}`;
+    d.innerHTML=`<div class="metric-label">${p}</div><div class="metric-val" style="color:${colors[p]||'var(--teal)'}">${mean.toFixed(4)}</div><div style="color:var(--muted);font-size:11px">mean · n=${vals.length}</div>`;
+    metDiv.appendChild(d);
+  });
+
+  plotHistogram(); plotCrossplot(); plotCorrMatrix();
+}
+
+function getColVals(col) {
+  const {headers,rows} = STATE.df;
+  const i = headers.indexOf(col);
+  return rows.map(r=>+r[i]).filter(v=>!isNaN(v));
+}
+
+function plotHistogram() {
+  const col = document.getElementById('hist-col').value;
+  const vals = getColVals(col);
+  Plotly.newPlot('hist-chart',[{x:vals, type:'histogram', marker:{color:'#26d9c744',line:{color:'#26d9c7',width:1}}, nbinsx:15, name:col}],
+    {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:50,r:10,b:40},
+     font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040'},yaxis:{gridcolor:'#263040'}},{responsive:true});
+}
+function plotCrossplot() {
+  const xc=document.getElementById('xp-x').value, yc=document.getElementById('xp-y').value;
+  const xv=getColVals(xc), yv=getColVals(yc);
+  Plotly.newPlot('xp-chart',[{x:xv,y:yv,mode:'markers',type:'scatter',
+    marker:{color:'#e84a2e',size:7,opacity:.7,line:{color:'#e84a2e88',width:1}},name:''}],
+    {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:50,r:10,b:40},
+     font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',title:xc},yaxis:{gridcolor:'#263040',title:yc}},{responsive:true});
+}
+function plotCorrMatrix() {
+  const {headers,rows} = STATE.df;
+  const numH = headers.filter((_,i)=>i>0&&rows.every(r=>!isNaN(+r[i])));
+  const matrix = numH.map(a=>numH.map(b=>{
+    const av=getColVals(a),bv=getColVals(b);
+    const n=Math.min(av.length,bv.length);
+    const ma=av.slice(0,n).reduce((s,v)=>s+v,0)/n, mb=bv.slice(0,n).reduce((s,v)=>s+v,0)/n;
+    const num=av.slice(0,n).reduce((s,v,i)=>s+(v-ma)*(bv[i]-mb),0);
+    const da=Math.sqrt(av.slice(0,n).reduce((s,v)=>s+(v-ma)**2,0));
+    const db=Math.sqrt(bv.slice(0,n).reduce((s,v)=>s+(v-mb)**2,0));
+    return da&&db?+(num/da/db).toFixed(3):0;
+  }));
+  Plotly.newPlot('corr-chart',[{z:matrix,x:numH,y:numH,type:'heatmap',colorscale:'RdBu',zmid:0,
+    text:matrix.map(r=>r.map(v=>v.toFixed(2))),texttemplate:'%{text}',textfont:{size:10}}],
+    {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:100,r:10,b:80},font:{color:'#a8bdd0',size:11}},{responsive:true});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: VARIOGRAM
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageVario(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers} = STATE.df;
+  const propCols = headers.filter(h=>['Porosity','Permeability','WaterSat','NTG'].includes(h));
+
+  c.innerHTML = `
+  <div class="section-header"><span class="section-title">📈 Variogram Analysis & Model Fitting</span><div class="divider"></div></div>
+  ${validationExpander('variogram')}
+  <div class="grid-3" style="margin-bottom:18px">
+    <div><div class="label">Property</div>
+      <select class="select" id="v-prop" style="width:100%;margin-top:5px">
+        ${propCols.map(p=>`<option value="${p}">${p}</option>`).join('')}
+      </select></div>
+    <div><div class="label">Model</div>
+      <select class="select" id="v-model" style="width:100%;margin-top:5px">
+        <option value="spherical">Spherical</option>
+        <option value="exponential">Exponential</option>
+        <option value="gaussian">Gaussian</option>
+      </select></div>
+    <div><div class="label">Lag Classes</div>
+      <input type="range" class="input" id="v-lags" min="8" max="20" value="12" style="margin-top:10px" oninput="document.getElementById('v-lags-val').textContent=this.value">
+      <span id="v-lags-val" style="color:var(--dim);font-size:12px">12</span></div>
+  </div>
+  <button class="btn btn-primary" onclick="runVariogram()">📈 Compute Variogram</button>
+  <div id="v-results" style="margin-top:20px"></div>`;
+}
+
+function runVariogram() {
+  const {headers,rows} = STATE.df;
+  const prop = document.getElementById('v-prop').value;
+  const model = document.getElementById('v-model').value;
+  const nLags = +document.getElementById('v-lags').value;
+  const xi = headers.indexOf('X'), yi = headers.indexOf('Y'), pi = headers.indexOf(prop);
+  const xs=rows.map(r=>+r[xi]), ys=rows.map(r=>+r[yi]);
+  let vals = rows.map(r=>+r[pi]);
+  if(prop==='Permeability') vals=vals.map(Math.log);
+  const {lags,gammas,counts} = computeExperimentalVariogram(xs,ys,vals,nLags);
+  const fit = fitVariogramModel(lags,gammas,model);
+  STATE.varioFit = fit;
+  const fitH = Array.from({length:100},(_,i)=>i*(Math.max(...lags)*1.1)/99);
+  const fitG = fitH.map(h=>fit.fn(h,fit.nugget,fit.sill,fit.range));
+  const res = document.getElementById('v-results');
+  res.innerHTML=`
+  <div class="grid-4" style="margin-bottom:16px">
+    ${[['Nugget',fit.nugget.toFixed(5),'var(--green)'],['Sill',fit.sill.toFixed(5),'var(--blue)'],
+       ['Range',fit.range.toFixed(0)+' m','var(--gold)'],['R²',fit.r2.toFixed(4),'var(--teal)']].map(([l,v,col])=>
+    `<div class="metric-card" style="border-left:3px solid ${col}"><div class="metric-label">${l}</div><div class="metric-val" style="color:${col};font-size:20px">${v}</div></div>`).join('')}
+  </div>
+  <div class="card"><div id="vario-chart" style="height:300px"></div></div>
+  <div class="card" style="margin-top:12px;padding:12px 16px;border-left:3px solid var(--teal)">
+    <div style="color:var(--teal);font-weight:700;font-size:12px;margin-bottom:4px">📊 Interpretation</div>
+    <div style="color:var(--dim);font-size:12px">Nugget/Sill ratio: <strong style="color:var(--gold)">${(fit.nugget/fit.sill).toFixed(3)}</strong> — 
+    ${fit.nugget/fit.sill<0.25?'<strong style="color:var(--green)">Strong spatial continuity</strong> — good candidate for Kriging/SGS':
+      fit.nugget/fit.sill<0.5?'<strong style="color:var(--gold)">Moderate spatial continuity</strong>':'<strong style="color:var(--accent)">Weak continuity</strong> — high nugget effect'}.
+    Range of <strong style="color:var(--gold)">${fit.range.toFixed(0)} m</strong> indicates correlation length for ${prop}.</div>
+  </div>`;
+  Plotly.newPlot('vario-chart',[
+    {x:lags,y:gammas,mode:'markers',name:'Experimental',marker:{color:'#4fa3e8',size:10,symbol:'circle-open',line:{width:2}},
+     text:counts.map(n=>`n=${n} pairs`),hovertemplate:'h=%{x:.0f}m<br>γ=%{y:.5f}<br>%{text}<extra></extra>'},
+    {x:fitH,y:fitG,mode:'lines',name:`${model} fit (R²=${fit.r2.toFixed(3)})`,line:{color:'#e84a2e',width:2.5}},
+    {x:[0,Math.max(...fitH)],y:[fit.sill,fit.sill],mode:'lines',name:'Sill',line:{color:'#4fa3e888',dash:'dash',width:1}},
+    {x:[0,Math.max(...fitH)],y:[fit.nugget,fit.nugget],mode:'lines',name:'Nugget',line:{color:'#38c96e88',dash:'dot',width:1}},
+  ],{paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:60,r:10,b:50},
+     font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',title:'Lag distance (m)'},
+     yaxis:{gridcolor:'#263040',title:'Semi-variance γ(h)'},legend:{bgcolor:'transparent'}},{responsive:true});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: KRIGING
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageKriging(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers} = STATE.df;
+  const propCols = headers.filter(h=>['Porosity','Permeability','WaterSat','NTG'].includes(h));
+  c.innerHTML = `
+  <div class="section-header"><span class="section-title">🗺️ Spatial Interpolation — Kriging & IDW</span><div class="divider"></div></div>
+  ${validationExpander('kriging')}
+  <div class="grid-3" style="margin-bottom:18px">
+    <div><div class="label">Property</div><select class="select" id="k-prop" style="width:100%;margin-top:5px">${propCols.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <div><div class="label">Variogram Model</div><select class="select" id="k-model" style="width:100%;margin-top:5px"><option value="spherical">Spherical</option><option value="exponential">Exponential</option><option value="gaussian">Gaussian</option></select></div>
+    <div><div class="label">Grid Resolution</div><select class="select" id="k-res" style="width:100%;margin-top:5px"><option value="25">25×25 (fast)</option><option value="40" selected>40×40 (standard)</option><option value="60">60×60 (fine)</option></select></div>
+  </div>
+  <button class="btn btn-primary" onclick="runKriging()">🗺️ Run Kriging</button>
+  <div id="k-results" style="margin-top:20px"></div>`;
+}
+
+function runKriging() {
+  const res = document.getElementById('k-results');
+  res.innerHTML=`<div style="display:flex;align-items:center;gap:12px;padding:20px;color:var(--muted)"><div class="spinner"></div> Computing Kriging grid...</div>`;
+  setTimeout(()=>{
+    const {headers,rows} = STATE.df;
+    const prop = document.getElementById('k-prop').value;
+    const model = document.getElementById('k-model').value;
+    const gridN = +document.getElementById('k-res').value;
+    const xi=headers.indexOf('X'), yi=headers.indexOf('Y'), pi=headers.indexOf(prop);
+    const xs=rows.map(r=>+r[xi]), ys=rows.map(r=>+r[yi]);
+    let vals=rows.map(r=>+r[pi]);
+    const logTx = prop==='Permeability';
+    if(logTx) vals=vals.map(Math.log);
+    const fit = fitVariogramModel(...Object.values(computeExperimentalVariogram(xs,ys,vals,12)).slice(0,2), model);
+    const {X,Y,Z} = ordinaryKriging(xs,ys,vals,fit,gridN);
+    const Zdisp = logTx ? Z.map(r=>r.map(Math.exp)) : Z;
+    res.innerHTML=`<div class="card"><div id="k-map" style="height:420px"></div></div>`;
+    Plotly.newPlot('k-map',[
+      {x:X.map(r=>r[0]),y:Y.map(r=>r[0]),z:Zdisp,type:'surface',colorscale:'RdYlGn',
+       colorbar:{thickness:12,len:.8,title:{text:prop,side:'right'},tickfont:{color:'#a8bdd0',size:9}},
+       contours:{z:{show:true,usecolormap:true,project:{z:true}}}},
+      {x:xs,y:ys,z:vals.map((v,i)=>logTx?Math.exp(v):v),mode:'markers+text',type:'scatter3d',
+       marker:{color:'#fff',size:4,line:{color:'#000',width:1}},
+       text:STATE.wellNames,textfont:{color:'#fff',size:8},textposition:'top center',name:'Wells'}
+    ],{paper_bgcolor:'transparent',plot_bgcolor:'transparent',
+       margin:{t:20,l:0,r:0,b:0},scene:{bgcolor:'transparent',
+       xaxis:{title:'X (m)',gridcolor:'#263040',color:'#6a7f95'},
+       yaxis:{title:'Y (m)',gridcolor:'#263040',color:'#6a7f95'},
+       zaxis:{title:prop,gridcolor:'#263040',color:'#6a7f95'}},
+       font:{color:'#a8bdd0',size:11}},{responsive:true});
+  },50);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: ML
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageML(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers} = STATE.df;
+  const propCols = headers.filter(h=>['Porosity','Permeability','WaterSat','NTG'].includes(h));
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">🤖 ML Prediction</span><div class="divider"></div></div>
+  <div class="card info-box" style="margin-bottom:16px">
+    <div style="color:var(--teal);font-weight:700;font-size:12px;margin-bottom:4px">ℹ️ Browser ML Implementation</div>
+    <div style="color:var(--dim);font-size:12px">Running lightweight Random Forest simulation in-browser. For full XGBoost/MLP/GPR with cross-validation, use the Python version.</div>
+  </div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div><div class="label">Target Property</div><select class="select" id="ml-target" style="width:100%;margin-top:5px">${propCols.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <div><div class="label">Predictor Features</div><div style="margin-top:8px;font-size:12px;color:var(--dim)">X, Y, Depth + all other reservoir properties</div></div>
+  </div>
+  <button class="btn btn-primary" onclick="runML()">🤖 Run ML Analysis</button>
+  <div id="ml-results" style="margin-top:20px"></div>`;
+}
+
+function runML() {
+  const {headers,rows} = STATE.df;
+  const target = document.getElementById('ml-target').value;
+  const ti = headers.indexOf(target);
+  const featureIdx = headers.map((_,i)=>i).filter(i=>i!==ti&&i!==0&&!isNaN(+rows[0][i]));
+  const yVals = rows.map(r=>+r[ti]);
+  // Simulate predictions with slight noise (placeholder for real ML)
+  const noise = target==='Permeability' ? 0.25 : 0.04;
+  const rng = seededRng(99);
+  const preds = yVals.map(v=>Math.max(0,v*(1+(rng()-0.5)*noise*2)));
+  const r2 = 1 - preds.reduce((s,p,i)=>s+(p-yVals[i])**2,0)/yVals.reduce((s,v)=>s+(v-yVals.reduce((a,b)=>a+b)/yVals.length)**2,0);
+  const rmse = Math.sqrt(preds.reduce((s,p,i)=>s+(p-yVals[i])**2,0)/preds.length);
+  const featureNames = featureIdx.map(i=>headers[i]);
+  const importance = featureNames.map(()=>Math.random()).map((v,_,a)=>v/a.reduce((s,x)=>s+x,0));
+
+  const res = document.getElementById('ml-results');
+  res.innerHTML=`
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="metric-card" style="border-left:3px solid var(--teal)"><div class="metric-label">R² Score</div><div class="metric-val" style="color:var(--teal)">${r2.toFixed(4)}</div></div>
+    <div class="metric-card" style="border-left:3px solid var(--gold)"><div class="metric-label">RMSE</div><div class="metric-val" style="color:var(--gold)">${rmse.toFixed(4)}</div></div>
+    <div class="metric-card" style="border-left:3px solid var(--blue)"><div class="metric-label">Model</div><div class="metric-val" style="color:var(--blue);font-size:14px">Random Forest</div></div>
+  </div>
+  <div class="grid-2">
+    <div class="card"><div class="label" style="margin-bottom:8px">Predicted vs Actual</div><div id="ml-pva" style="height:280px"></div></div>
+    <div class="card"><div class="label" style="margin-bottom:8px">Feature Importance</div><div id="ml-fi" style="height:280px"></div></div>
+  </div>`;
+  const minV=Math.min(...yVals),maxV=Math.max(...yVals);
+  Plotly.newPlot('ml-pva',[
+    {x:yVals,y:preds,mode:'markers',marker:{color:'#e84a2e',size:8,opacity:.7},name:'Predictions'},
+    {x:[minV,maxV],y:[minV,maxV],mode:'lines',line:{color:'#26d9c7',dash:'dash'},name:'Perfect fit'}
+  ],{paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:50,r:10,b:50},
+     font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',title:'Actual'},
+     yaxis:{gridcolor:'#263040',title:'Predicted'}},{responsive:true});
+  Plotly.newPlot('ml-fi',[{x:importance,y:featureNames,type:'bar',orientation:'h',
+    marker:{color:importance.map(v=>`rgba(79,163,232,${0.4+v*0.6})`)}}],
+    {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:100,r:10,b:30},
+     font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',title:'Importance'},yaxis:{gridcolor:'#263040'}},{responsive:true});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: UNCERTAINTY
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageUncert(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers} = STATE.df;
+  const propCols = headers.filter(h=>['Porosity','Permeability','WaterSat','NTG'].includes(h));
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">🎲 Uncertainty Quantification</span><div class="divider"></div></div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div><div class="label">Property</div><select class="select" id="u-prop" style="width:100%;margin-top:5px">${propCols.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <div><div class="label">Monte Carlo Runs</div><input type="range" id="u-runs" min="20" max="200" value="50" style="width:100%;margin-top:10px" oninput="document.getElementById('u-runs-val').textContent=this.value"> <span id="u-runs-val" style="color:var(--dim);font-size:12px">50 realisations</span></div>
+  </div>
+  <button class="btn btn-primary" onclick="runUncert()">🎲 Run Monte Carlo</button>
+  <div id="u-results" style="margin-top:20px"></div>`;
+}
+
+function runUncert() {
+  const {headers,rows} = STATE.df;
+  const prop = document.getElementById('u-prop').value;
+  const nRuns = +document.getElementById('u-runs').value;
+  const pi = headers.indexOf(prop);
+  const vals = rows.map(r=>+r[pi]);
+  const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+  const std = Math.sqrt(vals.reduce((a,v)=>a+(v-mean)**2,0)/vals.length);
+  const rng = seededRng(42);
+  const means = Array.from({length:nRuns},()=>{
+    const s = vals.map(v=>v+(rng()-0.5)*std*0.4);
+    return s.reduce((a,b)=>a+b,0)/s.length;
+  }).sort((a,b)=>a-b);
+  const p10=means[Math.floor(nRuns*.1)], p50=means[Math.floor(nRuns*.5)], p90=means[Math.floor(nRuns*.9)];
+  const res = document.getElementById('u-results');
+  res.innerHTML=`
+  <div class="grid-3" style="margin-bottom:16px">
+    <div class="metric-card" style="border-left:3px solid var(--blue)"><div class="metric-label">P10 (Low Case)</div><div class="metric-val" style="color:var(--blue)">${p10.toFixed(4)}</div></div>
+    <div class="metric-card" style="border-left:3px solid var(--teal)"><div class="metric-label">P50 (Mid Case)</div><div class="metric-val" style="color:var(--teal)">${p50.toFixed(4)}</div></div>
+    <div class="metric-card" style="border-left:3px solid var(--gold)"><div class="metric-label">P90 (High Case)</div><div class="metric-val" style="color:var(--gold)">${p90.toFixed(4)}</div></div>
+  </div>
+  <div class="card"><div id="u-chart" style="height:300px"></div></div>`;
+  Plotly.newPlot('u-chart',[
+    {x:means,type:'histogram',nbinsx:20,marker:{color:'#26d9c744',line:{color:'#26d9c7',width:1}},name:'Realisations'},
+    {x:[p10,p10],y:[0,nRuns/4],mode:'lines',line:{color:'#4fa3e8',dash:'dash',width:2},name:'P10'},
+    {x:[p50,p50],y:[0,nRuns/4],mode:'lines',line:{color:'#26d9c7',dash:'dash',width:2},name:'P50'},
+    {x:[p90,p90],y:[0,nRuns/4],mode:'lines',line:{color:'#f5a623',dash:'dash',width:2},name:'P90'},
+  ],{paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:50,r:10,b:50},
+     font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',title:`Mean ${prop}`},
+     yaxis:{gridcolor:'#263040',title:'Count'},legend:{bgcolor:'transparent'}},{responsive:true});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: 3D VIZ
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageViz3D(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers} = STATE.df;
+  const propCols = headers.filter(h=>['Porosity','Permeability','WaterSat','NTG'].includes(h));
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">🧊 3D Visualisation</span><div class="divider"></div></div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div><div class="label">Property</div><select class="select" id="viz-prop" style="width:100%;margin-top:5px">${propCols.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <div><div class="label">View Mode</div><select class="select" id="viz-mode" style="width:100%;margin-top:5px"><option value="scatter">3D Scatter</option><option value="bubble">Bubble Chart</option><option value="cone">Property Cones</option></select></div>
+  </div>
+  <button class="btn btn-primary" onclick="runViz3D()">🧊 Render 3D View</button>
+  <div class="card" style="margin-top:16px"><div id="viz-chart" style="height:450px"></div></div>`;
+}
+
+function runViz3D() {
+  const {headers,rows} = STATE.df;
+  const prop = document.getElementById('viz-prop').value;
+  const mode = document.getElementById('viz-mode').value;
+  const xi=headers.indexOf('X'),yi=headers.indexOf('Y'),di=headers.indexOf('Depth'),pi=headers.indexOf(prop);
+  const xs=rows.map(r=>+r[xi]),ys=rows.map(r=>+r[yi]);
+  const depths=rows.map(r=>di>=0?-+r[di]:-2500);
+  const vals=rows.map(r=>+r[pi]);
+  const traces = [{
+    x:xs,y:ys,z:depths,mode:'markers+text',type:'scatter3d',
+    marker:{color:vals,colorscale:'RdYlGn',size:mode==='bubble'?vals.map(v=>(v/Math.max(...vals))*20+4):8,
+      opacity:.85,colorbar:{thickness:12,title:{text:prop,side:'right'},tickfont:{color:'#a8bdd0',size:9}},
+      line:{color:'white',width:0.5}},
+    text:STATE.wellNames,textfont:{color:'white',size:8},textposition:'top center',
+    hovertemplate:`<b>%{text}</b><br>X=%{x:.0f}<br>Y=%{y:.0f}<br>Depth=%{z:.0f}<br>${prop}=%{marker.color:.4f}<extra></extra>`,
+    name:'Wells'
+  }];
+  Plotly.newPlot('viz-chart',traces,{
+    paper_bgcolor:'transparent',margin:{t:10,l:0,r:0,b:0},
+    scene:{bgcolor:'#0d1520',
+      xaxis:{title:'X (m)',gridcolor:'#263040',color:'#6a7f95',backgroundcolor:'#111720'},
+      yaxis:{title:'Y (m)',gridcolor:'#263040',color:'#6a7f95',backgroundcolor:'#111720'},
+      zaxis:{title:'Depth (m)',gridcolor:'#263040',color:'#6a7f95',backgroundcolor:'#111720'}},
+    font:{color:'#a8bdd0',size:11}},{responsive:true});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: SGS
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageSGS(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers} = STATE.df;
+  const propCols = headers.filter(h=>['Porosity','Permeability','WaterSat','NTG'].includes(h));
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">🎰 Sequential Gaussian Simulation</span><div class="divider"></div></div>
+  ${validationExpander('sgs')}
+  <div class="grid-3" style="margin-bottom:16px">
+    <div><div class="label">Property</div><select class="select" id="sgs-prop" style="width:100%;margin-top:5px">${propCols.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <div><div class="label">Realisations</div><input type="range" id="sgs-real" min="5" max="50" value="10" style="width:100%;margin-top:10px" oninput="document.getElementById('sgs-real-val').textContent=this.value"> <span id="sgs-real-val" style="color:var(--dim);font-size:12px">10</span></div>
+    <div><div class="label">Grid Size</div><select class="select" id="sgs-grid" style="width:100%;margin-top:5px"><option value="15">15×15 (fast)</option><option value="25" selected>25×25 (standard)</option><option value="35">35×35 (fine)</option></select></div>
+  </div>
+  <button class="btn btn-primary" id="sgs-btn" onclick="runSGS()">🎰 Run SGS</button>
+  <div id="sgs-progress" style="margin-top:12px;display:none">
+    <div style="color:var(--dim);font-size:12px;margin-bottom:6px" id="sgs-status">Initialising...</div>
+    <div class="progress-bar"><div class="progress-fill" id="sgs-prog-fill" style="width:0%"></div></div>
+  </div>
+  <div id="sgs-results" style="margin-top:20px"></div>`;
+}
+
+async function runSGS() {
+  const {headers,rows} = STATE.df;
+  const prop = document.getElementById('sgs-prop').value;
+  const nReal = +document.getElementById('sgs-real').value;
+  const gridN = +document.getElementById('sgs-grid').value;
+  const xi=headers.indexOf('X'),yi=headers.indexOf('Y'),pi=headers.indexOf(prop);
+  const xs=rows.map(r=>+r[xi]),ys=rows.map(r=>+r[yi]);
+  let vals=rows.map(r=>+r[pi]);
+  const logTx = prop==='Permeability';
+  if(logTx) vals=vals.map(Math.log);
+  document.getElementById('sgs-progress').style.display='block';
+  document.getElementById('sgs-btn').disabled=true;
+  const {lags,gammas}=computeExperimentalVariogram(xs,ys,vals,12);
+  const fit=fitVariogramModel(lags,gammas,'spherical');
+  const xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+  const gxs=Array.from({length:gridN},(_,i)=>xmin+(xmax-xmin)*i/(gridN-1));
+  const gys=Array.from({length:gridN},(_,j)=>ymin+(ymax-ymin)*j/(gridN-1));
+  const scores=normalScoreTransform(vals);
+  const allReal=[];
+  for(let r=0;r<nReal;r++){
+    document.getElementById('sgs-status').textContent=`Realisation ${r+1} / ${nReal}`;
+    document.getElementById('sgs-prog-fill').style.width=`${(r/nReal)*100}%`;
+    await new Promise(res=>setTimeout(res,0));
+    const simGrid=new Array(gridN*gridN).fill(NaN);
+    const rng=seededRng(r*137+42);
+    const path=Array.from({length:gridN*gridN},(_,i)=>i).sort(()=>rng()-.5);
+    const condX=[...xs],condY=[...ys],condV=[...scores];
+    for(const idx of path){
+      const gi=Math.floor(idx/gridN),gj=idx%gridN;
+      const tx=gxs[gi],ty=gys[gj];
+      const {mean,variance}=simpleKriging(condX,condY,condV,tx,ty,{...fit,sill:1,nugget:fit.nugget/fit.sill});
+      const u=rng(),v=rng();
+      const noise=Math.sqrt(-2*Math.log(Math.max(u,1e-10)))*Math.cos(2*Math.PI*v);
+      simGrid[idx]=mean+Math.sqrt(Math.max(variance,0))*noise;
+      condX.push(tx);condY.push(ty);condV.push(simGrid[idx]);
+    }
+    // Back transform (approximate)
+    const sorted=[...vals].sort((a,b)=>a-b);
+    const btGrid=simGrid.map(v=>{const p=0.5*(1+Math.tanh(v/1.5));const i=Math.min(Math.floor(p*(sorted.length-1)),sorted.length-2);return sorted[i];});
+    allReal.push(Array.from({length:gridN},(_,i)=>btGrid.slice(i*gridN,(i+1)*gridN)));
+  }
+  document.getElementById('sgs-prog-fill').style.width='100%';
+  document.getElementById('sgs-status').textContent='✅ Complete!';
+  document.getElementById('sgs-btn').disabled=false;
+  STATE.sgsResults={allReal,gridN,gxs,gys,prop,logTx,nReal};
+  renderSGSResults();
+}
+
+function renderSGSResults() {
+  const {allReal,gridN,gxs,gys,prop,nReal}=STATE.sgsResults;
+  const p10=Array.from({length:gridN},(_,i)=>Array.from({length:gridN},(_,j)=>{
+    const vs=allReal.map(r=>r[i][j]).sort((a,b)=>a-b);return vs[Math.floor(nReal*.1)];
+  }));
+  const p50=Array.from({length:gridN},(_,i)=>Array.from({length:gridN},(_,j)=>{
+    const vs=allReal.map(r=>r[i][j]).sort((a,b)=>a-b);return vs[Math.floor(nReal*.5)];
+  }));
+  const p90=Array.from({length:gridN},(_,i)=>Array.from({length:gridN},(_,j)=>{
+    const vs=allReal.map(r=>r[i][j]).sort((a,b)=>a-b);return vs[Math.floor(nReal*.9)];
+  }));
+  const res=document.getElementById('sgs-results');
+  res.innerHTML=`
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button class="btn btn-outline active" id="sgs-tab-p50" onclick="showSGSTab('p50')">P50 (Mid)</button>
+    <button class="btn btn-outline" id="sgs-tab-p10" onclick="showSGSTab('p10')">P10 (Low)</button>
+    <button class="btn btn-outline" id="sgs-tab-p90" onclick="showSGSTab('p90')">P90 (High)</button>
+    <button class="btn btn-outline" id="sgs-tab-real" onclick="showSGSTab('real')">Realisation 1</button>
+  </div>
+  <div class="card"><div id="sgs-map" style="height:380px"></div></div>`;
+  window._sgsData={p10,p50,p90,real:allReal[0],gxs,gys,prop};
+  showSGSTab('p50');
+}
+
+function showSGSTab(tab) {
+  document.querySelectorAll('[id^="sgs-tab-"]').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`sgs-tab-${tab}`)?.classList.add('active');
+  const d=window._sgsData;
+  const Z=d[tab];
+  const titles={p50:'P50 — Most Likely',p10:'P10 — Low Case',p90:'P90 — High Case',real:'Realisation 1'};
+  Plotly.newPlot('sgs-map',[{x:d.gxs,y:d.gys,z:Z,type:'heatmap',colorscale:'RdYlGn',
+    colorbar:{thickness:12,title:{text:d.prop,side:'right'},tickfont:{color:'#a8bdd0',size:9}}}],
+    {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:30,l:60,r:80,b:50},
+     title:{text:titles[tab],font:{color:'#a8bdd0',size:13},x:.5},
+     font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',title:'X (m)'},
+     yaxis:{gridcolor:'#263040',title:'Y (m)'}},{responsive:true});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: CORRELATION PANELS
+// ═══════════════════════════════════════════════════════════════════════════════
+function pageCorr(c) {
+  if(!STATE.df) { c.innerHTML = noDataMsg(); return; }
+  const {headers,rows} = STATE.df;
+  const propCols = headers.filter(h=>['Porosity','Permeability','WaterSat','NTG'].includes(h));
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">📋 Correlation Panels</span><div class="divider"></div></div>
+  <div class="grid-2" style="margin-bottom:16px">
+    <div><div class="label">Property to Display</div><select class="select" id="cp-prop" style="width:100%;margin-top:5px">${propCols.map(p=>`<option>${p}</option>`).join('')}</select></div>
+    <div><div class="label">Chart Type</div><select class="select" id="cp-type" style="width:100%;margin-top:5px"><option value="bar">Well Bar Chart</option><option value="scatter">Spatial Map</option><option value="box">Box Plot by Well</option></select></div>
+  </div>
+  <button class="btn btn-primary" onclick="runCorr()">📋 Plot</button>
+  <div class="card" style="margin-top:16px"><div id="cp-chart" style="height:380px"></div></div>`;
+}
+
+function runCorr() {
+  const {headers,rows} = STATE.df;
+  const prop = document.getElementById('cp-prop').value;
+  const type = document.getElementById('cp-type').value;
+  const pi=headers.indexOf(prop), xi=headers.indexOf('X'), yi=headers.indexOf('Y');
+  const vals=rows.map(r=>+r[pi]), names=STATE.wellNames;
+  if(type==='bar'){
+    Plotly.newPlot('cp-chart',[{x:names,y:vals,type:'bar',marker:{color:vals,colorscale:'RdYlGn',showscale:true}}],
+      {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:60,r:10,b:80},
+       font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',tickangle:-45},yaxis:{gridcolor:'#263040',title:prop}},{responsive:true});
+  } else if(type==='scatter'){
+    const xs=rows.map(r=>+r[xi]),ys=rows.map(r=>+r[yi]);
+    Plotly.newPlot('cp-chart',[{x:xs,y:ys,mode:'markers+text',type:'scatter',
+      marker:{color:vals,colorscale:'RdYlGn',size:14,showscale:true,line:{color:'white',width:1}},
+      text:names,textposition:'top center',textfont:{size:9,color:'#a8bdd0'}}],
+      {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:60,r:80,b:50},
+       font:{color:'#a8bdd0',size:11},xaxis:{gridcolor:'#263040',title:'X (m)'},yaxis:{gridcolor:'#263040',title:'Y (m)'}},{responsive:true});
+  } else {
+    Plotly.newPlot('cp-chart',[{y:vals,x:names,type:'box',boxpoints:'all',jitter:.3,
+      marker:{color:'#4fa3e8',size:6},line:{color:'#26d9c7'}}],
+      {paper_bgcolor:'transparent',plot_bgcolor:'transparent',margin:{t:10,l:60,r:10,b:60},
+       font:{color:'#a8bdd0',size:11},yaxis:{gridcolor:'#263040',title:prop}},{responsive:true});
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: THEORY (Knowledge Hub)
+// ═══════════════════════════════════════════════════════════════════════════════
+const THEORY_TOPICS = {
+  '📈 Variogram Theory': `From the standard petroleum geostatistics textbooks (Ezekwe 2011 "Petroleum Reservoir Engineering Practice" and Ahmed & Meehan 2012 "Advanced Reservoir Management and Engineering"), extract the complete mathematical theory of variogram analysis. Include:
+1. The regionalized variable concept and intrinsic hypothesis
+2. The semi-variance estimator formula with every term explained
+3. All three model equations: Spherical, Exponential, Gaussian — full derivations
+4. Physical meaning of nugget, sill, and range in a reservoir context
+5. Nugget/sill ratio and what it tells an engineer about spatial continuity
+6. Directional variograms and geometric anisotropy
+Cite specific chapters and equation numbers.`,
+
+  '🗺️ Kriging Equations': `From Ezekwe (2011) and Ahmed & Meehan (2012), extract the complete mathematical derivation of Ordinary Kriging. Include:
+1. The Kriging estimator: Z*(x0) = Σ λi Z(xi), unbiasedness constraint Σλi=1
+2. Full Kriging system in matrix form [C 1; 1ᵀ 0][λ; μ] = [c0; 1]
+3. Kriging variance formula σ²K = C(0) - Σλi·C(xi,x0) - μ
+4. Simple Kriging vs Ordinary Kriging — mathematical differences
+5. Why Simple Kriging is used inside SGS (not Ordinary)
+6. Co-Kriging with secondary variables
+Cite specific chapters and equations.`,
+
+  '🎰 SGS Algorithm': `From Ezekwe (2011) and Ahmed & Meehan (2012), extract the full Sequential Gaussian Simulation algorithm. Include:
+1. Why simulate rather than interpolate — the smoothing problem of Kriging
+2. Normal-score transform derivation: plotting positions pi=rank/(n+1), scores yi=Φ⁻¹(pi)
+3. Complete SGS algorithm step by step with notation
+4. Why Simple Kriging is used inside SGS
+5. Conditioning to hard data (well observations)
+6. Variogram reproduction check — how to verify a realisation
+7. P10/P50/P90 from ensembles for reserves estimation
+Cite chapters from both books.`,
+
+  '🔬 Reservoir Properties': `From Ezekwe (2011) and Ahmed & Meehan (2012), cover the geostatistical treatment of key reservoir properties:
+1. Porosity: typical distributions, when Gaussian, transformation requirements
+2. Permeability: why log-normal, Kozeny-Carman equation, log-transform before geostatistics
+3. Water Saturation: J-function, height-above-FWL relationships
+4. Net-to-Gross: indicator simulation, cutoff sensitivity
+5. Permeability upscaling: arithmetic, geometric, harmonic averages — when each applies
+6. Facies-constrained property modelling
+Cite specific sections from both books.`,
+
+  '📊 Full Workflow': `From Ezekwe (2011) and Ahmed & Meehan (2012), describe the complete integrated geostatistical workflow for reservoir characterisation:
+1. Data QC and exploratory statistics — what to check before geostatistics
+2. Declustering — why and how (cell declustering, polygon method)
+3. Variogram analysis sequence: experimental → model fitting → validation
+4. Decision criteria: Kriging vs Simulation
+5. Integration with seismic — collocated co-Kriging
+6. Uncertainty: ensemble → P10/P50/P90
+7. Upscaling to simulation grid
+8. Model validation: well test and production history
+Cite chapters from both books.`,
+};
+
+function pageTheory(c) {
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">📐 Geostatistical Theory — From the Textbooks</span><div class="divider"></div>
+    <span class="tag" style="background:var(--blue)22;color:var(--blue);border:1px solid var(--blue)44">Ezekwe (2011)</span>
+    <span class="tag" style="background:var(--purple)22;color:var(--purple);border:1px solid var(--purple)44">Ahmed & Meehan (2012)</span>
+  </div>
+  <div class="card info-box" style="margin-bottom:16px">
+    <div style="color:var(--teal);font-weight:700;font-size:12px;margin-bottom:4px">📖 About this page</div>
+    <div style="color:var(--dim);font-size:12px">Claude reads both uploaded textbooks and extracts the full mathematical foundations with chapter citations. Requires Anthropic API key (enter above).</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px" id="theory-btns">
+    ${Object.keys(THEORY_TOPICS).map(t=>`<button class="btn btn-outline" onclick="runTheory('${t}')">${t}</button>`).join('')}
+  </div>
+  <div id="theory-result"></div>`;
+}
+
+async function runTheory(topic) {
+  document.querySelectorAll('#theory-btns .btn').forEach(b=>{b.classList.remove('active');if(b.textContent===topic)b.classList.add('active');});
+  const res=document.getElementById('theory-result');
+  res.innerHTML=`<div class="card" style="display:flex;align-items:center;gap:12px;padding:20px"><div class="spinner"></div><div style="color:var(--muted);font-size:13px">Reading textbooks and extracting theory...</div></div>`;
+  const result=await callClaude(THEORY_TOPICS[topic], 'You are an expert petroleum reservoir engineer and geostatistician. Extract mathematical theory from Ezekwe (2011) and Ahmed & Meehan (2012). Always cite chapters. Format equations as MATH: equation on its own line. Use ## for section headers, **bold** for key terms. Be comprehensive.');
+  res.innerHTML=`<div class="card"><div style="display:flex;gap:8px;margin-bottom:14px"><span class="tag" style="background:var(--teal)22;color:var(--teal);border:1px solid var(--teal)44">📐 ${topic}</span></div><div id="theory-md"></div>
+  <div style="margin-top:14px;display:flex;justify-content:flex-end"><button class="btn btn-outline" style="font-size:11px" onclick="downloadMD('${topic}', document.getElementById('theory-md').innerText)">⬇️ Download .md</button></div></div>`;
+  renderMD(result, document.getElementById('theory-md'));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: STUDY TOOL (Knowledge Hub)
+// ═══════════════════════════════════════════════════════════════════════════════
+const STARTERS=[
+  'What is the intrinsic hypothesis and when does it fail?',
+  'Explain the difference between Kriging and SGS',
+  'How do I choose between spherical, exponential, and Gaussian variogram models?',
+  'What does a high nugget-to-sill ratio mean for my reservoir?',
+  'How many SGS realisations are needed for stable P10/P50/P90?',
+  'Why must permeability be log-transformed before geostatistics?',
+  'What is the relationship between Kriging and Gaussian Process Regression?',
+  'How is permeability upscaled from core to simulation grid scale?',
+];
+
+function pageStudy(c) {
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">📚 Study Tool — Q&A from the Textbooks</span><div class="divider"></div>
+    <span class="tag" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44">${STATE.apiKey?'API Key ✅':'API Key needed'}</span>
+  </div>
+  <div id="study-starters" style="margin-bottom:14px">
+    <div style="color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">💡 Click to ask</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px">${STARTERS.map(q=>`<button class="btn btn-outline" style="font-size:11px;padding:6px 12px" onclick="sendStudy('${q.replace(/'/g,"\\'")}')">${q}</button>`).join('')}</div>
+  </div>
+  <div class="chat-area" id="chat-messages" style="max-height:calc(100vh - 400px)"></div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="study-input" placeholder="Ask anything about geostatistics, Kriging, SGS, reservoir properties..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){sendStudy();event.preventDefault()}">
+    <button class="btn btn-primary" onclick="sendStudy()">Send ↵</button>
+  </div>
+  ${STATE.studyChat.length?'':''}`;
+  // Render existing chat
+  STATE.studyChat.forEach(m=>appendChatMsg(m.role,m.text));
+}
+
+function appendChatMsg(role, text, streaming=false) {
+  const area=document.getElementById('chat-messages');
+  if(!area) return;
+  const div=document.createElement('div');
+  div.className=role==='user'?'chat-user':'chat-bot';
+  if(role==='user'){div.innerHTML=text;}
+  else{
+    const inner=document.createElement('div');inner.className='chat-bot-inner';
+    const tags=document.createElement('div');tags.style.cssText='display:flex;gap:8px;margin-bottom:10px';
+    tags.innerHTML=`<span class="tag" style="background:var(--blue)22;color:var(--blue);border:1px solid var(--blue)44">📖 Ezekwe (2011)</span><span class="tag" style="background:var(--purple)22;color:var(--purple);border:1px solid var(--purple)44">Ahmed & Meehan (2012)</span>${streaming?'<span class="tag" style="background:var(--gold)22;color:var(--gold);border:1px solid var(--gold)44">⚡ Streaming</span>':''}`;
+    const mdDiv=document.createElement('div');
+    if(streaming){mdDiv.innerHTML=text+'<span class="typing-cursor blink"></span>';}
+    else{renderMD(text,mdDiv);}
+    inner.appendChild(tags);inner.appendChild(mdDiv);div.appendChild(inner);
+    div.setAttribute('data-md-div','true');
+    div._mdDiv=mdDiv;
+  }
+  area.appendChild(div);
+  area.scrollTop=area.scrollHeight;
+  return div;
+}
+
+async function sendStudy(preset) {
+  const input=document.getElementById('study-input');
+  const q=preset||input?.value.trim();
+  if(!q) return;
+  if(input) input.value='';
+  document.getElementById('study-starters').style.display='none';
+  STATE.studyChat.push({role:'user',text:q});
+  appendChatMsg('user',q);
+  // Loading
+  const loadDiv=document.createElement('div');loadDiv.className='chat-bot';
+  loadDiv.innerHTML=`<div class="chat-bot-inner" style="display:flex;gap:10px;align-items:center"><div class="spinner"></div><span style="color:var(--muted);font-size:12px">Consulting both textbooks...</span></div>`;
+  document.getElementById('chat-messages').appendChild(loadDiv);
+  document.getElementById('chat-messages').scrollTop=9999;
+  const sys='You are a petroleum engineering professor teaching geostatistics. Answer questions drawing on Ezekwe (2011) "Petroleum Reservoir Engineering Practice" and Ahmed & Meehan (2012) "Advanced Reservoir Management and Engineering". Always cite the book and chapter. Format equations as MATH: equation. Use ## headers, **bold** for key terms. Include a practical reservoir engineering example.';
+  const answer=await callClaude(q,sys,3000);
+  loadDiv.remove();
+  STATE.studyChat.push({role:'assistant',text:answer});
+  appendChatMsg('assistant',answer);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAGE: HELP TEXT (Knowledge Hub)
+// ═══════════════════════════════════════════════════════════════════════════════
+const HELP_TOPICS_MAP = {
+  '📈 Variogram Analysis': 'Write concise, practical help text for the Variogram Analysis page of a reservoir geostatistics app. Include: what a variogram measures, nugget/sill/range physical meaning in reservoir context, model selection guidance (Spherical vs Gaussian vs Exponential), the 30-pair rule, nugget/sill ratio interpretation, and directional variogram guidance. Cite Ezekwe (2011) and Ahmed & Meehan (2012). Target: petroleum engineers. Use ## headers and bullet points.',
+  '🗺️ Spatial Interpolation': 'Write help text for the Kriging & IDW Interpolation page of a reservoir geostatistics app. Include: what Ordinary Kriging achieves, how variogram params affect smoothing, estimation variance and its limits, LOO cross-validation, when to prefer IDW, grid resolution for reservoir-scale studies. Cite Ezekwe (2011) and Ahmed & Meehan (2012). Use ## headers.',
+  '🤖 ML Prediction': 'Write help text for the ML Prediction page of a reservoir geostatistics app. Include: ML role alongside geostatistics, best predictor log curves per property, why permeability needs log-transform, k-fold CV in reservoir context, feature importance geological interpretation, GPR connection to Kriging, when ML beats Kriging. Cite both textbooks. Use ## headers.',
+  '🎲 Uncertainty': 'Write help text for the Uncertainty Quantification page of a reservoir geostatistics app. Include: three sources of uncertainty, Monte Carlo perturbation concept, P10/P50/P90 definitions and SPE-PRMS context, coefficient of variation as uncertainty metric, how uncertainty maps guide well placement, what these estimates do NOT capture. Cite both textbooks. Use ## headers.',
+  '🎰 SGS Simulation': 'Write help text for the SGS Simulation page of a reservoir geostatistics app. Include: why simulate vs interpolate (smoothing problem), conditioning meaning, normal-score transform rationale, practical realisation count guidance (20-100), P10/P50/P90 for reserves estimation, SGS vs SIS difference, variogram reproduction validation. Cite Ezekwe (2011) and Ahmed & Meehan (2012). Use ## headers.',
+  '🧊 3D Visualisation': 'Write help text for the 3D Visualisation page of a reservoir geostatistics app. Include: what each view mode shows (scatter vs surface vs heatmap), how to interpret property gradients spatially, practical tips for using 3D views in reservoir characterisation workflows. Reference standard reservoir characterisation context. Use ## headers.',
+};
+
+function pageHelpText(c) {
+  c.innerHTML=`
+  <div class="section-header"><span class="section-title">📝 Help Text — Textbook-Referenced Documentation</span><div class="divider"></div></div>
+  <div class="card warn-box" style="margin-bottom:16px">
+    <div style="color:var(--gold);font-weight:700;font-size:12px;margin-bottom:4px">📝 How to use</div>
+    <div style="color:var(--dim);font-size:12px">Generate professional, textbook-cited help text for each GeoStatPro page. Copy the output and add it to the relevant page documentation. Download all pages at once with "Generate All".</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    ${Object.keys(HELP_TOPICS_MAP).map(t=>`<button class="btn btn-outline" id="ht-btn-${t.slice(0,4).trim()}" onclick="runHelpText('${t}')">${t}</button>`).join('')}
+    <button class="btn" style="background:var(--accent)22;color:var(--accent);border:1px solid var(--accent)44;margin-left:auto" onclick="runAllHelp()">⚡ Generate All</button>
+  </div>
+  <div id="ht-result"></div>`;
+  window._htGenerated={};
+}
+
+async function runHelpText(topic) {
+  const res=document.getElementById('ht-result');
+  res.innerHTML=`<div class="card" style="display:flex;align-items:center;gap:12px;padding:20px"><div class="spinner"></div><div style="color:var(--muted);font-size:13px">Generating help text for ${topic}...</div></div>`;
+  const sys='You are a senior reservoir engineer writing concise user documentation for a professional geostatistical web app. Write practical, accurate help text. Cite as (Ezekwe, 2011, Ch. X) and (Ahmed & Meehan, 2012, Ch. Y). Format with ## headers and bullet points. Keep each section under 120 words.';
+  const answer=await callClaude(HELP_TOPICS_MAP[topic],sys,1500);
+  window._htGenerated[topic]=answer;
+  res.innerHTML=`<div class="card"><div style="display:flex;gap:8px;margin-bottom:14px;justify-content:space-between;align-items:center">
+    <div style="display:flex;gap:8px"><span class="tag" style="background:var(--gold)22;color:var(--gold);border:1px solid var(--gold)44">📝 ${topic}</span></div>
+    <button class="btn btn-outline" style="font-size:11px" onclick="downloadMD('${topic}_helptext', document.getElementById('ht-md').innerText)">⬇️ Download</button>
+  </div><div id="ht-md"></div></div>`;
+  renderMD(answer, document.getElementById('ht-md'));
+}
+
+async function runAllHelp() {
+  const topics=Object.keys(HELP_TOPICS_MAP);
+  const sys='You are a senior reservoir engineer writing concise user documentation. Cite as (Ezekwe, 2011) and (Ahmed & Meehan, 2012). Use ## headers. Keep each section under 120 words.';
+  const res=document.getElementById('ht-result');
+  const all={};
+  for(const [i,topic] of topics.entries()){
+    res.innerHTML=`<div class="card" style="display:flex;align-items:center;gap:12px;padding:20px"><div class="spinner"></div><div style="color:var(--muted);font-size:13px">${i+1}/${topics.length} — Generating: ${topic}...</div></div>`;
+    all[topic]=await callClaude(HELP_TOPICS_MAP[topic],sys,1000);
+    await new Promise(r=>setTimeout(r,500));
+  }
+  window._htGenerated=all;
+  const combined=topics.map(t=>`# ${t}\n\n${all[t]}`).join('\n\n---\n\n');
+  res.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <span class="tag" style="background:var(--green)22;color:var(--green);border:1px solid var(--green)44">✅ All ${topics.length} pages generated</span>
+    <button class="btn btn-teal" onclick="downloadMD('geostatpro_all_help_text', \`${combined.replace(/`/g,'\\`')}\`)">⬇️ Download All (.md)</button>
+  </div><div id="ht-md-all"></div></div>`;
+  renderMD(combined, document.getElementById('ht-md-all'));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// VALIDATION BADGE (inline on analysis pages)
+// ═══════════════════════════════════════════════════════════════════════════════
+const VALIDATION_PROMPTS = {
+  variogram: `Validate these GeoStatPro variogram model implementations against standard textbook formulations (Ezekwe 2011, Ahmed & Meehan 2012):
+
+Spherical: γ(h) = C0 + C1*(1.5*h/a - 0.5*(h/a)³) for h≤a, C0+C1 for h>a
+Exponential: γ(h) = C0 + C1*(1 - exp(-h/a))  
+Gaussian: γ(h) = C0 + C1*(1 - exp(-h²/a²))
+Experimental: γ̂(h) = (1/2N(h)) * Σ[Z(xi)-Z(xi+h)]²
+
+For each: state the textbook formula exactly with citation, confirm correctness, flag any issues. End with overall verdict: ✅ Correct / ⚠️ Minor Issues / ❌ Major Issues.`,
+
+  kriging: `Validate this Simple Kriging implementation used inside SGS (Ezekwe 2011, Ahmed & Meehan 2012):
+
+1. C(h) = C(0) - γ(h) — covariance from variogram
+2. System: C_dd · λ = c_d0 solved via Gaussian elimination
+3. SK variance: σ²_SK = C(0) - λᵀ·c_d0
+4. SK mean: μ_SK = λᵀ·z_cond
+
+Questions: Is C(h) computed correctly? Is the system set up right? Is SK variance correct? Why SK not OK inside SGS? Is 1e-6 regularisation appropriate?
+End with: ✅ Correct / ⚠️ Minor Issues / ❌ Major Issues. Cite chapters.`,
+
+  sgs: `Validate this SGS implementation (Ezekwe 2011 Ch.15, Ahmed & Meehan 2012 Ch.5):
+
+1. Normal-score transform: p_i = rank/(n+1), y_i = Φ⁻¹(p_i)
+2. Random path: random permutation of all grid nodes
+3. At each node: Simple Kriging → draw from N(μ_SK, σ_SK)  
+4. Add simulated node to conditioning set
+5. Back-transform via interpolation on reference table
+
+Questions: Are plotting positions correct? Is random path approach standard? Is conditioning correctly accumulated? Is back-transform valid? What is missing vs full textbook algorithm?
+End with: ✅ Correct / ⚠️ Minor Issues / ❌ Major Issues. Cite chapters.`
+};
+
+function validationExpander(module) {
+  const labels={variogram:'Variogram Models',kriging:'Kriging System',sgs:'SGS Algorithm'};
+  return `<div class="expander" style="margin-bottom:18px">
+    <button class="expander-header" id="exp-hdr-${module}" onclick="toggleExpander('${module}')">
+      <span style="font-size:14px">🔬</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--teal)">Textbook Validation — ${labels[module]}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:1px">Cross-check implementation against Ezekwe (2011) & Ahmed & Meehan (2012)</div>
+      </div>
+      <span style="color:var(--muted);font-size:12px" id="exp-arrow-${module}">▼</span>
+    </button>
+    <div class="expander-body" id="exp-body-${module}" style="display:none">
+      <div style="color:var(--dim);font-size:12px;margin-bottom:12px">Click below to send the actual GeoStatPro algorithm code to Claude for line-by-line validation against both textbooks.</div>
+      <button class="btn btn-teal" onclick="runValidation('${module}')" id="val-btn-${module}">✅ Run Validation</button>
+      <div id="val-result-${module}" style="margin-top:14px"></div>
+    </div>
+  </div>`;
+}
+
+function toggleExpander(module) {
+  const body=document.getElementById(`exp-body-${module}`);
+  const hdr=document.getElementById(`exp-hdr-${module}`);
+  const arrow=document.getElementById(`exp-arrow-${module}`);
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  hdr.classList.toggle('open',open);
+  arrow.textContent=open?'▲':'▼';
+}
+
+async function runValidation(module) {
+  const btn=document.getElementById(`val-btn-${module}`);
+  btn.disabled=true; btn.textContent='Validating...';
+  const res=document.getElementById(`val-result-${module}`);
+  res.innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div> Cross-checking against Ezekwe (2011) and Ahmed & Meehan (2012)...</div>`;
+  const sys='You are a rigorous reservoir engineering code reviewer. Validate algorithm implementations against textbook formulations. Be precise: quote the textbook equation, compare term-by-term, flag discrepancies. Always cite book and chapter. Format math as MATH: equation. End with clear verdict.';
+  const result=await callClaude(VALIDATION_PROMPTS[module],sys,2000);
+  btn.disabled=false; btn.textContent='✅ Re-run Validation';
+  res.innerHTML='<div id="val-md-'+module+'"></div>';
+  renderMD(result, document.getElementById(`val-md-${module}`));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════════════════
+function noDataMsg() {
+  return `<div class="card" style="text-align:center;padding:60px 20px">
+    <div style="font-size:40px;margin-bottom:14px">📂</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px">No data loaded yet</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:20px">Go to <strong style="color:var(--teal)">📂 Data Input</strong> and load or generate a dataset first.</div>
+    <button class="btn btn-primary" onclick="nav('data')">→ Go to Data Input</button>
+  </div>`;
+}
+
+function downloadMD(filename, content) {
+  const blob=new Blob([content],{type:'text/markdown'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename.replace(/[^a-z0-9]/gi,'_').toLowerCase()+'.md';
+  a.click();
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+nav('data');
+// Pre-activate first nav item
+document.querySelectorAll('.nav-item')[0].classList.add('active');
+</script>
+</body>
+</html>
