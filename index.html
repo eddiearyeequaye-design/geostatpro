@@ -135,6 +135,9 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;dis
     <div class="logo-sub">Reservoir Intelligence v3</div>
   </div>
 
+  <div class="nav-section">Getting Started</div>
+  <button class="nav-item" onclick="nav('welcome')">🏠 <span>Welcome & Guide</span></button>
+  <hr class="nav-divider">
   <div class="nav-section">Core Workflow</div>
   <button class="nav-item" onclick="nav('data')">📂 <span>Data Input</span></button>
   <button class="nav-item" onclick="nav('eda')">🔍 <span>EDA & Quality Control</span></button>
@@ -212,6 +215,7 @@ function saveApiKey() {
 
 // ── NAVIGATION ──────────────────────────────────────────────────────────────
 const PAGE_TITLES = {
+  welcome:'🏠 Welcome & Guide',
   data:'📂 Data Input', eda:'🔍 EDA & Quality Control',
   vario:'📈 Variogram Analysis', kriging:'🗺️ Spatial Interpolation',
   ml:'🤖 ML Prediction', uncert:'🎲 Uncertainty Quantification',
@@ -243,6 +247,7 @@ function renderPage(page) {
   const c = document.getElementById('content');
   c.innerHTML = '';
   const pages = {
+    welcome: pageWelcome,
     data: pageData, eda: pageEDA, vario: pageVario,
     kriging: pageKriging, ml: pageML, uncert: pageUncert,
     viz3d: pageViz3D, sgs: pageSGS, corr: pageCorr,
@@ -252,8 +257,137 @@ function renderPage(page) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// GEOSTATISTICS ENGINE (pure JS)
+// PAGE: WELCOME
 // ═══════════════════════════════════════════════════════════════════════════════
+function pageWelcome(c) {
+  c.innerHTML = `
+  <div style="max-width:860px;margin:0 auto">
+
+    <!-- Hero -->
+    <div style="background:linear-gradient(135deg,var(--card) 0%,#0d1e30 100%);border:1px solid var(--border);border-radius:14px;padding:32px 36px;margin-bottom:22px;position:relative;overflow:hidden">
+      <div style="position:absolute;top:-30px;right:-30px;font-size:120px;opacity:.04;pointer-events:none">🛢️</div>
+      <div style="display:flex;align-items:flex-start;gap:18px">
+        <div style="font-size:44px;flex-shrink:0">🛢️</div>
+        <div>
+          <div style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);margin-bottom:6px">GeoStatPro v3</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:10px">Reservoir Geostatistics & Property Prediction Platform</div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.75;max-width:640px">
+            GeoStatPro is a browser-based petroleum engineering tool for characterising subsurface reservoir properties — porosity, permeability, water saturation, and net-to-gross — using industry-standard geostatistical methods. It takes well data as input and produces interpolated property maps, uncertainty envelopes, and simulation realisations that feed directly into volumetrics and reservoir modelling decisions.
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+            <span class="tag" style="background:var(--teal)22;color:var(--teal);border:1px solid var(--teal)44">12 Analysis Pages</span>
+            <span class="tag" style="background:var(--blue)22;color:var(--blue);border:1px solid var(--blue)44">No Installation</span>
+            <span class="tag" style="background:var(--gold)22;color:var(--gold);border:1px solid var(--gold)44">Runs in Browser</span>
+            <span class="tag" style="background:var(--purple)22;color:var(--purple);border:1px solid var(--purple)44">AI Knowledge Hub</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- What this app does -->
+    <div class="card" style="margin-bottom:18px;border-left:3px solid var(--teal)">
+      <div style="font-size:13px;font-weight:800;color:var(--teal);margin-bottom:12px;letter-spacing:.04em">WHAT THIS APP DOES</div>
+      <div style="font-size:13px;color:var(--dim);line-height:1.8">
+        In petroleum engineering, a reservoir is never fully sampled — you only have data at well locations, which may be spaced kilometres apart. The fundamental problem is: <strong style="color:var(--text)">what is the reservoir property (e.g. porosity) at every undrilled location, and how uncertain is that estimate?</strong> GeoStatPro solves this using geostatistics — the science of spatially correlated estimation. It analyses how similar nearby measurements are (variogram), predicts values everywhere on a grid (Kriging), and generates multiple equally-probable realisations (SGS) to quantify how wrong those predictions might be. The outputs directly support decisions about where to drill next, how much hydrocarbon is in place, and what range of recovery to expect.
+      </div>
+    </div>
+
+    <!-- Recommended workflow -->
+    <div class="card" style="margin-bottom:18px">
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;letter-spacing:.04em">📋 RECOMMENDED WORKFLOW — FOLLOW THESE STEPS IN ORDER</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${[
+          ['1','📂 Data Input','Start here. Load your well data as a CSV (columns: Well, X, Y, Depth, Porosity, Permeability, WaterSat, NTG) or use the built-in synthetic dataset to explore the app first. X and Y must be in metres.','var(--accent)'],
+          ['2','🔍 EDA & QC','Inspect your data before any analysis. Check distributions (histogram), relationships between properties (crossplot), and which properties correlate (matrix). Flag outliers here — bad data corrupts all downstream results.','var(--blue)'],
+          ['3','📈 Variogram Analysis','This is the most critical step. The variogram quantifies how quickly reservoir properties change in space. The fitted model (nugget, sill, range) becomes the spatial correlation structure used by both Kriging and SGS. A poor variogram fit means poor maps.','var(--teal)'],
+          ['4','🗺️ Spatial Interpolation','Run Ordinary Kriging to produce a continuous property map across the field. This is your best single estimate. Use it to identify high-porosity zones, plan infill wells, and compute average field properties.','var(--gold)'],
+          ['5','🤖 ML Prediction','Use when you have many wells and want to capture non-linear relationships between properties (e.g. using seismic attributes as predictors). The predicted-vs-actual plot and feature importance tell you which inputs matter most.','var(--purple)'],
+          ['6','🎲 Uncertainty','Monte Carlo perturbation gives you P10/P50/P90 bounds on mean property values. This feeds directly into probabilistic volumetrics — the SPE-PRMS standard for booking reserves.','var(--green)'],
+          ['7','🧊 3D Visualisation','View all wells in 3D coloured by any property. Useful for identifying depth trends, structural compartments, and where the best reservoir quality sits relative to the structural crest.','var(--teal)'],
+          ['8','🎰 SGS Simulation','Sequential Gaussian Simulation generates multiple realisations that all honour the well data and variogram. Each is equally likely. The spread across realisations is your spatial uncertainty — more meaningful than a single Kriging map.','var(--gold)'],
+          ['9','📋 Correlation Panels','Compare property values across all wells side-by-side. Useful for identifying which wells are outliers, confirming geological trends, and communicating results to non-technical stakeholders.','var(--accent)'],
+        ].map(([n,title,desc,col])=>`
+        <div style="display:flex;gap:14px;align-items:flex-start">
+          <div style="width:26px;height:26px;background:${col}22;border:1px solid ${col}55;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:${col}">${n}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px">${title}</div>
+            <div style="font-size:12px;color:var(--dim);line-height:1.65">${desc}</div>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Two column: data format + knowledge hub -->
+    <div class="grid-2" style="margin-bottom:18px">
+      <div class="card" style="border-left:3px solid var(--gold)">
+        <div style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:10px;letter-spacing:.04em">📊 YOUR DATA FORMAT</div>
+        <div style="font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:10px">Your CSV must have these column headers (case-sensitive):</div>
+        <table class="data-table" style="font-size:11px">
+          <thead><tr><th>Column</th><th>Unit</th><th>Required?</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--text)">Well</td><td>name/ID</td><td style="color:var(--green)">✅ Yes</td></tr>
+            <tr><td style="color:var(--text)">X</td><td>metres</td><td style="color:var(--green)">✅ Yes</td></tr>
+            <tr><td style="color:var(--text)">Y</td><td>metres</td><td style="color:var(--green)">✅ Yes</td></tr>
+            <tr><td style="color:var(--text)">Depth</td><td>metres</td><td style="color:var(--muted)">Optional</td></tr>
+            <tr><td style="color:var(--text)">Porosity</td><td>fraction (0–1)</td><td style="color:var(--muted)">Optional</td></tr>
+            <tr><td style="color:var(--text)">Permeability</td><td>mD</td><td style="color:var(--muted)">Optional</td></tr>
+            <tr><td style="color:var(--text)">WaterSat</td><td>fraction (0–1)</td><td style="color:var(--muted)">Optional</td></tr>
+            <tr><td style="color:var(--text)">NTG</td><td>fraction (0–1)</td><td style="color:var(--muted)">Optional</td></tr>
+          </tbody>
+        </table>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">You need at least X, Y, and one property column to run any analysis. Minimum ~8 wells recommended; 15+ for robust variogram fitting.</div>
+      </div>
+
+      <div class="card" style="border-left:3px solid var(--purple)">
+        <div style="font-size:13px;font-weight:800;color:var(--purple);margin-bottom:10px;letter-spacing:.04em">🧠 KNOWLEDGE HUB (AI-POWERED)</div>
+        <div style="font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:12px">Three extra pages powered by Claude AI. Enter your Anthropic API key in the yellow banner at the top to unlock them.</div>
+        ${[
+          ['📐 Theory & Math','Extracts full mathematical derivations from your two uploaded textbooks (Ezekwe 2011, Ahmed & Meehan 2012) — variogram equations, Kriging matrices, SGS algorithm, property distributions.','var(--blue)'],
+          ['📚 Study Tool','A conversational Q&A tutor. Ask anything about geostatistics and get textbook-cited answers with chapter references. Includes 8 guided starter questions.','var(--teal)'],
+          ['📝 Help Text','Generates professional, cited help documentation for each GeoStatPro page. Download as markdown for your own reference notes or thesis appendix.','var(--gold)'],
+        ].map(([t,d,col])=>`
+        <div style="margin-bottom:10px;padding:10px 12px;background:var(--panel);border-radius:7px;border-left:2px solid ${col}">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px">${t}</div>
+          <div style="font-size:11px;color:var(--muted)">${d}</div>
+        </div>`).join('')}
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">API key is free to create at console.anthropic.com — $5 free credits on sign-up.</div>
+      </div>
+    </div>
+
+    <!-- Quick reference: what the numbers mean -->
+    <div class="card" style="margin-bottom:18px">
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:14px;letter-spacing:.04em">🔢 QUICK REFERENCE — WHAT THE KEY NUMBERS MEAN IN REAL LIFE</div>
+      <div class="grid-2" style="gap:10px">
+        ${[
+          ['Porosity (φ)','Fraction of rock that is pore space — where fluids live.',['< 0.05 → Tight rock, negligible storage','0.05–0.15 → Poor to fair reservoir','0.15–0.25 → Good reservoir quality','> 0.25 → Excellent (e.g. clean sandstone)'],'var(--teal)'],
+          ['Permeability (k)','How easily fluids flow through the rock.',['< 1 mD → Tight, needs stimulation','1–10 mD → Low, marginal flow','10–100 mD → Moderate, commercial','> 100 mD → Good, easily produced'],'var(--gold)'],
+          ['Water Saturation (Sw)','Fraction of pore space occupied by water (not oil/gas).',['< 0.30 → Excellent, mostly hydrocarbon','0.30–0.50 → Good to fair','0.50–0.70 → Poor, mostly water','> 0.70 → Non-reservoir / aquifer'],'var(--blue)'],
+          ['Net-to-Gross (NTG)','Fraction of the gross interval that meets reservoir quality cutoffs.',['< 0.30 → Thin pay, poor architecture','0.30–0.60 → Moderate connectivity','0.60–0.85 → Good layered reservoir','> 0.85 → Massive, highly connected'],'var(--accent)'],
+          ['Nugget/Sill Ratio','Short-scale variability vs total variability — key variogram diagnostic.',['< 0.10 → Near-perfect spatial continuity','0.10–0.25 → Strong continuity, good for Kriging','0.25–0.50 → Moderate, still mappable','> 0.50 → High noise, weak spatial signal'],'var(--purple)'],
+          ['Kriging R²','How well the variogram model fits the experimental points.',['> 0.90 → Excellent fit, trust the map','0.75–0.90 → Good, minor artefacts possible','0.50–0.75 → Fair, interpret with caution','< 0.50 → Poor, refit the variogram first'],'var(--green)'],
+        ].map(([name,def,items,col])=>`
+        <div style="background:var(--panel);border-radius:8px;padding:12px 14px;border-left:3px solid ${col}">
+          <div style="font-size:12px;font-weight:800;color:${col};margin-bottom:3px">${name}</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">${def}</div>
+          ${items.map(it=>`<div style="font-size:11px;color:var(--dim);margin-bottom:3px;display:flex;gap:6px"><span style="color:${col};flex-shrink:0">▸</span>${it}</div>`).join('')}
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div style="text-align:center;padding:20px 0 8px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Ready to begin? Start with the synthetic data to explore all features, then swap in your real well data.</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="nav('data')">📂 Load Data → Start Here</button>
+        <button class="btn btn-outline" onclick="nav('theory')">📐 Read the Theory First</button>
+        <button class="btn btn-outline" onclick="nav('study')">📚 Ask the Study Tool</button>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+
 
 // Synthetic data generator
 function generateSyntheticData(nWells=15, seed=42) {
@@ -674,7 +808,8 @@ function pageEDA(c) {
       <div id="xp-chart" style="height:220px"></div>
     </div>
   </div>
-  <div class="card"><div class="label" style="margin-bottom:10px">Correlation Matrix</div><div id="corr-chart" style="height:300px"></div></div>`;
+  <div class="card"><div class="label" style="margin-bottom:10px">Correlation Matrix</div><div id="corr-chart" style="height:300px"></div></div>
+  <div id="eda-interp" style="margin-top:14px"></div>`;
 
   // Metrics
   const metDiv = document.getElementById('eda-metrics');
@@ -692,6 +827,55 @@ function pageEDA(c) {
   });
 
   plotHistogram(); plotCrossplot(); plotCorrMatrix();
+
+  // Interpretation
+  const propInterpData = ['Porosity','Permeability','WaterSat','NTG'].filter(p=>headers.includes(p)).map(p=>{
+    const vals=getColVals(p); const mean=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const std=Math.sqrt(vals.reduce((a,v)=>a+(v-mean)**2,0)/vals.length);
+    const cv=std/mean;
+    let quality='', qcol='var(--muted)', note='';
+    if(p==='Porosity'){
+      if(mean>0.25){quality='Excellent';qcol='var(--green)';note='Very high quality reservoir. Expect strong producibility if permeability and NTG also favour.';}
+      else if(mean>0.15){quality='Good';qcol='var(--teal)';note='Good reservoir quality. Typical of clean sandstone or carbonate grainstone.';}
+      else if(mean>0.05){quality='Fair–Poor';qcol='var(--gold)';note='Marginal reservoir. Recovery will depend heavily on permeability and NTG.';}
+      else{quality='Tight';qcol='var(--accent)';note='Very tight rock. May require stimulation. Not a conventional reservoir.';}
+    } else if(p==='Permeability'){
+      if(mean>100){quality='Excellent';qcol='var(--green)';note='High-permeability reservoir. Fluids will flow easily without stimulation.';}
+      else if(mean>10){quality='Moderate';qcol='var(--teal)';note='Commercially viable with good well completions.';}
+      else if(mean>1){quality='Low';qcol='var(--gold)';note='Marginal flow capacity. May need hydraulic fracturing or horizontal wells.';}
+      else{quality='Tight';qcol='var(--accent)';note='Unconventional reservoir. Standard vertical wells unlikely to be economic.';}
+    } else if(p==='WaterSat'){
+      if(mean<0.30){quality='Excellent';qcol='var(--green)';note='Pore space is predominantly hydrocarbon-bearing. Very favourable saturation.';}
+      else if(mean<0.50){quality='Good';qcol='var(--teal)';note='Good hydrocarbon saturation. Water cut at production will be manageable.';}
+      else if(mean<0.70){quality='Poor';qcol='var(--gold)';note='High water saturation. Significant water production expected.';}
+      else{quality='Wet';qcol='var(--accent)';note='Near or below the free water level. Little to no economic hydrocarbon.';}
+    } else if(p==='NTG'){
+      if(mean>0.85){quality='Massive';qcol='var(--green)';note='Almost all gross interval is net reservoir. Excellent vertical connectivity.';}
+      else if(mean>0.60){quality='Good';qcol='var(--teal)';note='Layered reservoir with good pay fraction. Typical of braided fluvial or turbidite systems.';}
+      else if(mean>0.30){quality='Moderate';qcol='var(--gold)';note='Interbedded reservoir and non-reservoir. Net pay will be significantly less than gross.';}
+      else{quality='Poor';qcol='var(--accent)';note='Thin pay layers. Reservoir architecture limits producibility and sweep efficiency.';}
+    }
+    const cvNote = cv<0.3?'Low variability — homogeneous reservoir':cv<0.6?'Moderate variability — some heterogeneity':'High variability — heterogeneous, structural compartments possible';
+    return `<div style="background:var(--panel);border-radius:8px;padding:12px 14px;border-left:3px solid ${qcol}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-size:12px;font-weight:700;color:var(--text)">${p}</span>
+        <span class="tag" style="background:${qcol}22;color:${qcol};border:1px solid ${qcol}44">${quality}</span>
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:5px">${note}</div>
+      <div style="font-size:11px;color:var(--muted)">CV = ${cv.toFixed(2)} → ${cvNote}</div>
+    </div>`;
+  }).join('');
+
+  const interpEl = document.getElementById('eda-interp');
+  if(interpEl) interpEl.innerHTML=`<div class="card" style="border-left:3px solid var(--teal)">
+    <div style="font-size:13px;font-weight:800;color:var(--teal);margin-bottom:12px">📊 RESERVOIR QUALITY INTERPRETATION</div>
+    <div style="font-size:12px;color:var(--dim);margin-bottom:12px">Based on field-average values across all ${rows.length} wells. Hover any chart to inspect individual well values.</div>
+    <div class="grid-2" style="gap:10px">${propInterpData}</div>
+    <div style="margin-top:14px;padding:10px 14px;background:var(--panel);border-radius:7px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">💡 What to look for in the correlation matrix</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.7">A strong <strong style="color:var(--green)">positive</strong> Porosity–Permeability correlation (r > 0.7) confirms the reservoir is controlled by grain size/sorting — reliable for property estimation. A strong <strong style="color:var(--accent)">negative</strong> Porosity–WaterSat correlation confirms Archie-type saturation behaviour — higher porosity means more hydrocarbon. Weak or absent correlations suggest structural or diagenetic controls that may need facies-dependent modelling.</div>
+    </div>
+  </div>`;
 }
 
 function getColVals(col) {
@@ -784,12 +968,30 @@ function runVariogram() {
     `<div class="metric-card" style="border-left:3px solid ${col}"><div class="metric-label">${l}</div><div class="metric-val" style="color:${col};font-size:20px">${v}</div></div>`).join('')}
   </div>
   <div class="card"><div id="vario-chart" style="height:300px"></div></div>
-  <div class="card" style="margin-top:12px;padding:12px 16px;border-left:3px solid var(--teal)">
-    <div style="color:var(--teal);font-weight:700;font-size:12px;margin-bottom:4px">📊 Interpretation</div>
-    <div style="color:var(--dim);font-size:12px">Nugget/Sill ratio: <strong style="color:var(--gold)">${(fit.nugget/fit.sill).toFixed(3)}</strong> — 
-    ${fit.nugget/fit.sill<0.25?'<strong style="color:var(--green)">Strong spatial continuity</strong> — good candidate for Kriging/SGS':
-      fit.nugget/fit.sill<0.5?'<strong style="color:var(--gold)">Moderate spatial continuity</strong>':'<strong style="color:var(--accent)">Weak continuity</strong> — high nugget effect'}.
-    Range of <strong style="color:var(--gold)">${fit.range.toFixed(0)} m</strong> indicates correlation length for ${prop}.</div>
+  <div class="card" style="margin-top:12px;border-left:3px solid var(--teal)">
+    <div style="font-size:13px;font-weight:800;color:var(--teal);margin-bottom:12px">📊 VARIOGRAM INTERPRETATION</div>
+    <div class="grid-2" style="gap:12px;margin-bottom:14px">
+      <div style="background:var(--panel);border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px">NUGGET = ${fit.nugget.toFixed(5)}</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">The semi-variance at zero lag — represents variability at scales smaller than your well spacing, plus measurement error. In reservoir terms, this is the <strong style="color:var(--text)">irreducible uncertainty</strong> even between very close wells. A large nugget often means the property is controlled by small-scale sedimentary features (laminations, fractures) that your data cannot capture.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:6px">SILL = ${fit.sill.toFixed(5)}</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">The plateau value — equals the global variance of your data when spatial correlation vanishes. Two wells separated beyond the range are essentially unrelated in ${prop}. The sill being close to your sample variance confirms a <strong style="color:var(--text)">stationary</strong> dataset — a requirement for Kriging to be unbiased.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:6px">RANGE = ${fit.range.toFixed(0)} m</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">The distance beyond which ${prop} values are spatially independent. This is the <strong style="color:var(--text)">correlation length</strong> of your reservoir. It directly controls how smooth the Kriging map looks and how far a well's influence extends. For context: if range ≈ your well spacing, you are right at the limit of reliable interpolation.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:12px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">NUGGET/SILL = ${(fit.nugget/fit.sill).toFixed(3)}</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">${fit.nugget/fit.sill<0.1?'<strong style="color:var(--green)">Excellent spatial continuity</strong> — almost all variability is structured. Kriging and SGS will produce reliable, smooth maps. Ideal reservoir characterisation conditions.':fit.nugget/fit.sill<0.25?'<strong style="color:var(--green)">Strong spatial continuity</strong> — most variability is spatially structured. Good candidate for Kriging and SGS. Maps will be reliable.':fit.nugget/fit.sill<0.5?'<strong style="color:var(--gold)">Moderate continuity</strong> — some structured variability. Maps are useful but will have higher uncertainty. Consider increasing well count.':'<strong style="color:var(--accent)">Weak continuity (high nugget)</strong> — most variability is noise. Kriging maps will be poorly constrained. Consider whether the property is truly spatially continuous.'}</div>
+      </div>
+    </div>
+    <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">💡 Model fit quality: R² = ${fit.r2.toFixed(4)}</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.7">${fit.r2>0.9?'<strong style="color:var(--green)">Excellent fit.</strong> The '+model+' model captures the spatial structure well. You can proceed confidently to Kriging and SGS.':fit.r2>0.75?'<strong style="color:var(--teal)">Good fit.</strong> The model is reliable. Minor artefacts possible in the Kriging map at intermediate distances.':fit.r2>0.5?'<strong style="color:var(--gold)">Fair fit.</strong> Try a different variogram model (e.g. switch Spherical → Exponential). The current model may introduce bias in the Kriging map.':'<strong style="color:var(--accent)">Poor fit.</strong> The model does not represent the data well. Change the model type or adjust the number of lag classes before proceeding.'} The ${model} model implies ${model==='spherical'?'a finite correlation that decays polynomially — typical of layered, stratified reservoirs':model==='exponential'?'a gradual exponential decay — typical of heterogeneous, stochastic reservoirs with no abrupt boundary':'a smooth Gaussian decay — typical of continuous, gradational facies transitions'}.</div>
+    </div>
   </div>`;
   Plotly.newPlot('vario-chart',[
     {x:lags,y:gammas,mode:'markers',name:'Experimental',marker:{color:'#4fa3e8',size:10,symbol:'circle-open',line:{width:2}},
@@ -837,7 +1039,8 @@ function runKriging() {
     const fit = fitVariogramModel(...Object.values(computeExperimentalVariogram(xs,ys,vals,12)).slice(0,2), model);
     const {X,Y,Z} = ordinaryKriging(xs,ys,vals,fit,gridN);
     const Zdisp = logTx ? Z.map(r=>r.map(Math.exp)) : Z;
-    res.innerHTML=`<div class="card"><div id="k-map" style="height:420px"></div></div>`;
+    res.innerHTML=`<div class="card"><div id="k-map" style="height:420px"></div></div>
+    <div id="k-interp" style="margin-top:14px"></div>`;
     Plotly.newPlot('k-map',[
       {x:X.map(r=>r[0]),y:Y.map(r=>r[0]),z:Zdisp,type:'surface',colorscale:'RdYlGn',
        colorbar:{thickness:12,len:.8,title:{text:prop,side:'right'},tickfont:{color:'#a8bdd0',size:9}},
@@ -851,6 +1054,48 @@ function runKriging() {
        yaxis:{title:'Y (m)',gridcolor:'#263040',color:'#6a7f95'},
        zaxis:{title:prop,gridcolor:'#263040',color:'#6a7f95'}},
        font:{color:'#a8bdd0',size:11}},{responsive:true});
+
+    // Compute map stats for interpretation
+    const flatZ = Zdisp.flat().filter(v=>!isNaN(v));
+    const mapMean = flatZ.reduce((a,b)=>a+b,0)/flatZ.length;
+    const mapMin = Math.min(...flatZ), mapMax = Math.max(...flatZ);
+    const mapStd = Math.sqrt(flatZ.reduce((a,v)=>a+(v-mapMean)**2,0)/flatZ.length);
+    const krigInterpEl = document.getElementById('k-interp');
+    if(krigInterpEl) krigInterpEl.innerHTML=`
+    <div class="card" style="border-left:3px solid var(--teal)">
+      <div style="font-size:13px;font-weight:800;color:var(--teal);margin-bottom:12px">🗺️ KRIGING MAP INTERPRETATION</div>
+      <div class="grid-3" style="gap:10px;margin-bottom:14px">
+        <div style="background:var(--panel);border-radius:8px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Map Mean</div>
+          <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--teal)">${mapMean.toFixed(4)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">Kriged field average for ${prop}</div>
+        </div>
+        <div style="background:var(--panel);border-radius:8px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Map Range</div>
+          <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--gold)">${mapMin.toFixed(3)} – ${mapMax.toFixed(3)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">Min to max across the grid</div>
+        </div>
+        <div style="background:var(--panel);border-radius:8px;padding:10px 12px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Smoothing</div>
+          <div style="font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--blue)">${(mapStd / (vals.reduce((a,b)=>a+b,0)/vals.length * 0.15 + mapStd)).toFixed(2)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">Kriging smoothing index (0=smooth, 1=rough)</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">🎨 How to read the colour map</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.7"><strong style="color:var(--green)">Green regions</strong> = highest ${prop} values → best reservoir quality → priority drilling targets. <strong style="color:var(--accent)">Red regions</strong> = lowest values → poor reservoir or water-wet zone → avoid. <strong style="color:var(--gold)">Yellow/orange</strong> = intermediate quality. The surface height also represents the property value — peaks are the sweet spots.</div>
+        </div>
+        <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+          <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:4px">⚠️ Important limitations of this Kriging map</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.7">Kriging produces the <strong style="color:var(--text)">minimum-variance linear estimate</strong> — it gives the most probable single value at each location, but it <strong style="color:var(--text)">underestimates variability</strong> (the map is smoother than reality). It does not show you how uncertain those estimates are — use the <strong style="color:var(--teal)">SGS page</strong> for uncertainty-aware maps. Between wells, the map reverts toward the mean: the further you are from a well, the less you should trust the specific value shown.</div>
+        </div>
+        <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+          <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:4px">💡 Engineering application</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.7">Use the Kriging map of ${prop} to: (1) identify the best-quality reservoir zone for infill drilling, (2) compute a field-average property for volumetric estimates (STOIIP/GIIP), (3) input to a static reservoir model as the most-likely property layer. The map mean of <strong style="color:var(--teal)">${mapMean.toFixed(4)}</strong> is your best single-number estimate of field-average ${prop} — use it in the volumetric formula as the deterministic case.</div>
+        </div>
+      </div>
+    </div>`;
   },50);
 }
 
@@ -900,6 +1145,27 @@ function runML() {
   <div class="grid-2">
     <div class="card"><div class="label" style="margin-bottom:8px">Predicted vs Actual</div><div id="ml-pva" style="height:280px"></div></div>
     <div class="card"><div class="label" style="margin-bottom:8px">Feature Importance</div><div id="ml-fi" style="height:280px"></div></div>
+  </div>
+  <div class="card" style="margin-top:14px;border-left:3px solid var(--blue)">
+    <div style="font-size:13px;font-weight:800;color:var(--blue);margin-bottom:12px">🤖 ML RESULTS INTERPRETATION</div>
+    <div class="grid-2" style="gap:10px;margin-bottom:12px">
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:5px">R² = ${r2.toFixed(4)} — What does this mean?</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">${r2>0.9?'<strong style="color:var(--green)">Excellent</strong> — the model explains >90% of variance. Predictions are reliable. The spatial and property features are strong predictors of '+target+'.':r2>0.75?'<strong style="color:var(--teal)">Good</strong> — the model captures most patterns. Suitable for mapping '+target+' across undrilled locations.':r2>0.5?'<strong style="color:var(--gold)">Fair</strong> — moderate predictive power. Use with caution. '+target+' may be influenced by factors not in this dataset (e.g. facies, diagenesis).':'<strong style="color:var(--accent)">Poor</strong> — the model explains less than half the variance. '+target+' is not well-predicted by these features alone. Consider adding seismic attributes or facies data.'}</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:5px">RMSE = ${rmse.toFixed(4)} — In reservoir terms</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">The root-mean-square prediction error in original ${target} units. ${target==='Porosity'?'An RMSE of '+rmse.toFixed(3)+' means predictions are off by ±'+rmse.toFixed(3)+' in porosity fraction — equivalent to ±'+(rmse*100).toFixed(1)+'% porosity units. For context, a difference of 0.02 porosity can change STOIIP by 10–15%.':target==='Permeability'?'An RMSE of '+rmse.toFixed(1)+' mD on permeability is '+( rmse/Math.max(...yVals)*100).toFixed(0)+'% of the max value. Permeability is log-normally distributed so this error in linear space is larger than it appears.':'An RMSE of '+rmse.toFixed(4)+' in '+target+' fraction translates to practical reservoir uncertainty in saturation and pay thickness estimates.'}</div>
+      </div>
+    </div>
+    <div style="padding:10px 14px;background:var(--panel);border-radius:7px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">📊 Reading the Predicted vs Actual plot</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.7">Points should fall on or near the <strong style="color:var(--teal)">teal dashed line</strong> (perfect prediction). Points <strong style="color:var(--text)">above the line</strong> = model over-predicts (optimistic); <strong style="color:var(--text)">below the line</strong> = under-predicts (pessimistic). A systematic bow shape (curved scatter) suggests a non-linear relationship the model hasn't fully captured — try log-transforming ${target} if not already done.</div>
+    </div>
+    <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+      <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px">📊 Reading the Feature Importance plot</div>
+      <div style="font-size:11px;color:var(--dim);line-height:1.7">The longest bars are the strongest predictors of ${target}. In reservoir engineering: if <strong style="color:var(--text)">X and Y coordinates</strong> dominate → spatial trend is the primary control (good for Kriging). If another <strong style="color:var(--text)">property</strong> dominates → petrophysical relationship is more important than location (consider co-Kriging or regression). If <strong style="color:var(--text)">Depth</strong> dominates → compaction or diagenetic trend with burial depth (consider depth-trend correction before geostatistics).</div>
+    </div>
   </div>`;
   const minV=Math.min(...yVals),maxV=Math.max(...yVals);
   Plotly.newPlot('ml-pva',[
@@ -952,7 +1218,34 @@ function runUncert() {
     <div class="metric-card" style="border-left:3px solid var(--teal)"><div class="metric-label">P50 (Mid Case)</div><div class="metric-val" style="color:var(--teal)">${p50.toFixed(4)}</div></div>
     <div class="metric-card" style="border-left:3px solid var(--gold)"><div class="metric-label">P90 (High Case)</div><div class="metric-val" style="color:var(--gold)">${p90.toFixed(4)}</div></div>
   </div>
-  <div class="card"><div id="u-chart" style="height:300px"></div></div>`;
+  <div class="card"><div id="u-chart" style="height:300px"></div></div>
+  <div class="card" style="margin-top:14px;border-left:3px solid var(--blue)">
+    <div style="font-size:13px;font-weight:800;color:var(--blue);margin-bottom:12px">🎲 UNCERTAINTY INTERPRETATION</div>
+    <div class="grid-3" style="gap:10px;margin-bottom:14px">
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:10px;font-weight:700;color:var(--blue);text-transform:uppercase;margin-bottom:4px">P10 = ${p10.toFixed(4)}</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.65">The <strong style="color:var(--text)">Low Case</strong>. Only 10% of realisations gave a lower value. In SPE-PRMS reserves classification, this is your <strong style="color:var(--text)">1P (Proved) case</strong> — the conservative volumetric estimate you would defend to a regulator or bank. Use this for minimum economic threshold analysis.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;margin-bottom:4px">P50 = ${p50.toFixed(4)}</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.65">The <strong style="color:var(--text)">Best Estimate / Mid Case</strong>. Half of realisations are above, half below. In SPE-PRMS this is your <strong style="color:var(--text)">2P (Proved + Probable) case</strong> — the number reported to investors and used for development planning. This is the most likely field-average ${prop}.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;margin-bottom:4px">P90 = ${p90.toFixed(4)}</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.65">The <strong style="color:var(--text)">High Case</strong>. 90% of realisations gave a lower value. In SPE-PRMS this is your <strong style="color:var(--text)">3P (Proved + Probable + Possible) case</strong> — the optimistic upside. Use for maximum facility sizing and best-case economic modelling.</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">💡 P90–P10 spread = ${(p90-p10).toFixed(4)} — your uncertainty range</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">The spread from P10 to P90 (${(p90-p10).toFixed(4)} in ${prop}) represents your <strong style="color:var(--text)">geological and sampling uncertainty</strong>. ${((p90-p10)/p50).toFixed(2)<0.2?'This is a <strong style="color:var(--green)">tight spread</strong> (< 20% of P50) — low uncertainty. The field is well-characterised by existing wells.':((p90-p10)/p50)<0.4?'This is a <strong style="color:var(--teal)">moderate spread</strong> — typical for a field at early appraisal stage. Additional wells would narrow this significantly.':'This is a <strong style="color:var(--gold)">wide spread</strong> — high uncertainty. Decisions based on P50 alone carry significant risk. Either more wells are needed, or the reservoir is inherently heterogeneous.'} The uncertainty in field-average ${prop} directly multiplies into STOIIP/GIIP uncertainty.</div>
+      </div>
+      <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">⚠️ What this uncertainty estimate does NOT capture</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">This Monte Carlo analysis only quantifies <strong style="color:var(--text)">petrophysical property uncertainty</strong> from well data variability. It does not include: structural uncertainty (depth to reservoir top), fluid contact uncertainty (OWC/GWC position), seismic depth conversion errors, or dynamic uncertainties (relative permeability, aquifer strength). For a full probabilistic STOIIP, all these inputs need their own P10/P50/P90 distributions, combined via Monte Carlo in a volumetrics tool.</div>
+      </div>
+    </div>
+  </div>`;
   Plotly.newPlot('u-chart',[
     {x:means,type:'histogram',nbinsx:20,marker:{color:'#26d9c744',line:{color:'#26d9c7',width:1}},name:'Realisations'},
     {x:[p10,p10],y:[0,nRuns/4],mode:'lines',line:{color:'#4fa3e8',dash:'dash',width:2},name:'P10'},
@@ -977,7 +1270,20 @@ function pageViz3D(c) {
     <div><div class="label">View Mode</div><select class="select" id="viz-mode" style="width:100%;margin-top:5px"><option value="scatter">3D Scatter</option><option value="bubble">Bubble Chart</option><option value="cone">Property Cones</option></select></div>
   </div>
   <button class="btn btn-primary" onclick="runViz3D()">🧊 Render 3D View</button>
-  <div class="card" style="margin-top:16px"><div id="viz-chart" style="height:450px"></div></div>`;
+  <div class="card" style="margin-top:16px"><div id="viz-chart" style="height:450px"></div></div>
+  <div class="card" style="margin-top:14px;border-left:3px solid var(--teal)">
+    <div style="font-size:13px;font-weight:800;color:var(--teal);margin-bottom:10px">🧊 HOW TO READ THE 3D VIEW</div>
+    <div class="grid-2" style="gap:10px">
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:5px">Colour scale (Red → Green)</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7"><strong style="color:var(--green)">Green wells</strong> have the highest property value — these are your best performers. <strong style="color:var(--accent)">Red wells</strong> are the lowest — weakest reservoir. In a porosity map, green wells are your high-quality targets. In a water saturation map, red wells are the most hydrocarbon-bearing (remember: low Sw = more oil/gas). Always check which property is plotted — the colour meaning flips for Sw.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--blue);margin-bottom:5px">Depth axis (negative = deeper)</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">The Z-axis shows depth below surface (negative convention). Look for <strong style="color:var(--text)">depth trends</strong> — do reservoir properties systematically improve or degrade with depth? A clear depth trend (e.g. porosity decreasing with depth due to compaction) should be modelled as a trend and removed before variogram analysis — otherwise your variogram is measuring trend, not spatial correlation.</div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function runViz3D() {
@@ -1096,7 +1402,30 @@ function renderSGSResults() {
     <button class="btn btn-outline" id="sgs-tab-p90" onclick="showSGSTab('p90')">P90 (High)</button>
     <button class="btn btn-outline" id="sgs-tab-real" onclick="showSGSTab('real')">Realisation 1</button>
   </div>
-  <div class="card"><div id="sgs-map" style="height:380px"></div></div>`;
+  <div class="card"><div id="sgs-map" style="height:380px"></div></div>
+  <div class="card" style="margin-top:14px;border-left:3px solid var(--gold)">
+    <div style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:12px">🎰 SGS RESULTS INTERPRETATION</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="grid-2" style="gap:10px">
+        <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:5px">Why are the ${nReal} realisations all different?</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.7">Each realisation honours every well observation exactly and reproduces the variogram model — but the values between wells differ. This controlled randomness reflects genuine <strong style="color:var(--text)">geological uncertainty</strong>: given only these ${STATE.df?STATE.df.rows.length:''} wells, the reservoir between drill locations could look like any of the ${nReal} realisations. No single map is "right" — they are all equally geologically plausible.</div>
+        </div>
+        <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+          <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:5px">P10 / P50 / P90 maps — how to use them</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.7"><strong style="color:var(--teal)">P50</strong> is your best estimate of the spatial distribution — similar to Kriging but preserving local variability. <strong style="color:var(--blue)">P10</strong> shows where the property is low across most realisations — the conservative development scenario. <strong style="color:var(--gold)">P90</strong> shows the optimistic upside. The <strong style="color:var(--text)">difference between P10 and P90 maps</strong> spatially identifies the most uncertain parts of the reservoir — exactly where the next appraisal well should go.</div>
+        </div>
+      </div>
+      <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px">🆚 SGS vs Kriging — which should you use?</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7"><strong style="color:var(--text)">Kriging</strong> gives you the statistically optimal single estimate but is too smooth — it underestimates the extremes (very high and very low values). <strong style="color:var(--text)">SGS</strong> reproduces the full variability of the data and gives an uncertainty range. Use Kriging when you need one best-estimate map for a static model. Use SGS when you need uncertainty quantification for probabilistic reserves, flow simulation input, or infill drilling decisions. For any commercial decision, SGS is the industry standard (SPE-PRMS compliant).</div>
+      </div>
+      <div style="padding:10px 14px;background:var(--panel);border-radius:7px">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px">💡 How many realisations do you need in practice?</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">The current run used <strong style="color:var(--text)">${nReal} realisations</strong>. Industry guidance: ${nReal<20?'20 is the absolute minimum — <strong style="color:var(--accent)">increase to at least 20 for any publishable result</strong>. With fewer than 20 realisations your P10/P90 estimates are statistically unstable.':nReal<50?'This is adequate for exploratory work. For a full field development plan, 50–100 realisations give stable P10/P90 percentiles (< 2% variation between runs).':'This is a solid ensemble. P10/P50/P90 statistics should be stable. For ultra-precise uncertainty (e.g. reserves certification), 200+ realisations are sometimes used, but rarely necessary.'} The P50 map typically stabilises after 20 realisations; P10/P90 stabilise after 50.</div>
+      </div>
+    </div>
+  </div>`;
   window._sgsData={p10,p50,p90,real:allReal[0],gxs,gys,prop};
   showSGSTab('p50');
 }
@@ -1129,7 +1458,24 @@ function pageCorr(c) {
     <div><div class="label">Chart Type</div><select class="select" id="cp-type" style="width:100%;margin-top:5px"><option value="bar">Well Bar Chart</option><option value="scatter">Spatial Map</option><option value="box">Box Plot by Well</option></select></div>
   </div>
   <button class="btn btn-primary" onclick="runCorr()">📋 Plot</button>
-  <div class="card" style="margin-top:16px"><div id="cp-chart" style="height:380px"></div></div>`;
+  <div class="card" style="margin-top:16px"><div id="cp-chart" style="height:380px"></div></div>
+  <div class="card" style="margin-top:14px;border-left:3px solid var(--accent)">
+    <div style="font-size:13px;font-weight:800;color:var(--accent);margin-bottom:10px">📋 HOW TO READ THESE CHARTS</div>
+    <div class="grid-3" style="gap:10px">
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:5px">Bar Chart</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.65">Each bar is one well. <strong style="color:var(--green)">Tall green bars</strong> = best reservoir wells — candidates for analogue modelling or infill well location. <strong style="color:var(--accent)">Short red bars</strong> = worst wells — check if they are outliers (data error?) or a genuine low-quality zone. Wide spread between bars = high heterogeneity across the field.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:5px">Spatial Map</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.65">Wells plotted in their X–Y positions coloured by property value. This is a quick visual check of spatial trends before running Kriging. If you see a clear <strong style="color:var(--text)">colour gradient</strong> (e.g. green in one corner, red in another), that is a spatial trend. If colours appear random, the property is dominated by small-scale variability — expect a high nugget in the variogram.</div>
+      </div>
+      <div style="background:var(--panel);border-radius:8px;padding:10px 14px">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:5px">Box Plot</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.65">Shows the full statistical spread across all wells as a single distribution. The <strong style="color:var(--teal)">box</strong> is the interquartile range (P25–P75), the <strong style="color:var(--text)">line</strong> inside is the median, and individual dots are the well values. Points far outside the box (<strong style="color:var(--accent)">outliers</strong>) should be investigated — they may be erroneous data points or genuine sweet spots / tight zones.</div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function runCorr() {
@@ -1467,7 +1813,7 @@ function downloadMD(filename, content) {
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-nav('data');
+nav('welcome');
 // Pre-activate first nav item
 document.querySelectorAll('.nav-item')[0].classList.add('active');
 </script>
